@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="zh" data-page-node-id="0brlTOxX4s5f1E03xYcLKd">
+<head data-page-node-id="wK9xfjp7HlFoWhvCr8k4wK">
+<meta charset="utf-8" data-page-node-id="nFHLTPtHQafa4WgunqV3VU">
+<meta name="viewport" content="width=device-width, initial-scale=1" data-page-node-id="ymSuBnek7ITpBIZtDWReJ9">
+<title>都江堰 → Harness 工程设计原则：数据、公式与可迁移原则</title>
+<style>
+  :root{
+    --accent:#0f766e; --accent2:#1d4ed8; --bg:#f6f7f9; --card:#fff;
+    --ink:#16202c; --muted:#5b6b7c; --line:#e3e8ee; --warn:#b45309;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.72;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(120deg,#0f766e 0%,#115e59 38%,#1d4ed8 100%);color:#fff;padding:44px 32px 38px}
+  header .wrap{max-width:1000px;margin:0 auto}
+  header h1{margin:0 0 10px;font-size:27px;letter-spacing:.3px}
+  header .sub{opacity:.94;font-size:14.5px}
+  header .meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+  header .meta span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+       border-radius:999px;padding:3px 12px;font-size:12px}
+  main{max-width:1000px;margin:0 auto;padding:26px 20px 70px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:18px 0;
+        box-shadow:0 1px 3px rgba(16,24,40,.05)}
+  .card h2{margin:0 0 14px;font-size:19px;color:var(--accent);border-left:4px solid var(--accent);padding-left:10px}
+  .card h3{margin:0;font-size:17px}
+  h2.sec{font-size:22px;margin:38px 0 6px;color:var(--ink);padding-bottom:8px;border-bottom:2px solid var(--line)}
+  p{margin:8px 0}
+  .tw{overflow-x:auto;margin:10px 0 4px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  tbody tr:nth-child(even){background:#fafbfc}
+  th{background:#f1f4f8;font-weight:700;color:#334155;white-space:nowrap}
+  blockquote{margin:14px 0;padding:12px 16px;border-left:4px solid var(--accent2);background:#eff6ff;
+        color:#1e3a5f;border-radius:0 8px 8px 0;font-size:14px}
+  code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:2px 7px;
+        font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.8px;color:#0f172a;
+        display:inline-block;line-height:1.7}
+  .fx code{display:block;padding:11px 13px;background:#f8fafc;white-space:pre-wrap;word-break:break-word}
+  .chip{display:inline-block;border:1px solid;border-radius:999px;padding:1px 9px;font-size:11.5px;
+        font-weight:600;white-space:nowrap}
+  .evidence-note{display:block;margin-top:3px;color:var(--muted);font-size:11px;font-weight:400;line-height:1.35}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin:6px 0 4px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .kpi .v{font-size:23px;font-weight:800;color:var(--accent);letter-spacing:.5px}
+  .kpi .k{font-size:12px;color:var(--muted);margin-top:2px}
+  .toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:6px}
+  .toc-item{display:flex;gap:9px;align-items:baseline;text-decoration:none;color:#1e293b;
+        font-size:13.2px;padding:6px 9px;border-radius:8px;border:1px solid transparent}
+  .toc-item:hover{background:#f1f5f9;border-color:var(--line)}
+  .toc-item .tn{font-weight:800;color:var(--accent);min-width:20px}
+  .pr{border-left:4px solid var(--accent)}
+  .core-principle{border-left:4px solid var(--accent2)}
+  .core-principle .pn{background:linear-gradient(135deg,#1d4ed8,#0f766e);font-size:14px}
+  .core-question{margin:10px 0;padding:9px 12px;background:#eff6ff;border-left:3px solid var(--accent2)}
+  .principle-tag{display:inline-block;margin-left:8px;color:var(--accent2);font-size:12px;font-weight:600}
+  .principle-link{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor}
+  .ph{display:flex;gap:14px;align-items:flex-start;margin-bottom:12px}
+  .pn{flex:0 0 40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#0f766e,#1d4ed8);
+        color:#fff;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center}
+  .alias{font-size:12.5px;color:var(--warn);margin-top:3px;font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;margin:10px 0}
+  .cell{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .lbl{display:inline-block;font-size:11.5px;font-weight:700;color:#fff;background:#64748b;
+        border-radius:5px;padding:1px 8px;margin-bottom:6px}
+  .lbl-map{background:var(--accent2)}
+  .maprow{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin:10px 0}
+  .fx{margin:10px 0}
+  .fx .lbl{background:#0f766e}
+  .ref{margin-top:10px;font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
+  .paper{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent2);
+        border-radius:10px;padding:14px 16px;margin:12px 0}
+  .pt{font-size:14.5px;font-weight:700;line-height:1.6}
+  .pkey{display:inline-block;background:#0f766e;color:#fff;font-size:12px;font-weight:700;
+        padding:1px 8px;border-radius:5px;margin-right:8px;vertical-align:2px;white-space:nowrap}
+  .pa{font-size:12.8px;color:#334155;margin-top:3px}
+  .pj{font-size:12.5px;color:var(--warn);font-weight:600;margin-top:2px}
+  .pw{font-size:13.2px;color:#334155;margin:7px 0}
+  .pl{font-size:11.8px;word-break:break-all;color:var(--accent2)}
+  .note{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:13.2px}
+  .plain{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 14px;margin:10px 0}
+  .lbl-plain{background:#c2410c}
+  .oneline{font-size:15.5px;font-weight:700;color:#9a3412;margin:6px 0 4px}
+  .analogy{font-size:13.4px;color:#7c2d12;margin:4px 0 0}
+  .onepager div{margin:12px 0}
+  .onepager .q{font-weight:800;color:var(--accent);font-size:15px}
+  .onepager .a{font-size:14.2px;color:#334155;margin-top:3px}
+  .resolved{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;
+        margin:10px 0;font-size:13.4px}
+  .open{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;
+        margin:10px 0;font-size:13.4px}
+  .verdict{font-weight:800;white-space:nowrap}
+  .v-ok{color:#15803d}
+  .v-part{color:#b45309}
+  .v-no{color:#b91c1c}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:26px 20px 40px;border-top:1px solid var(--line)}
+  a{color:var(--accent2)}
+  svg{width:100%;height:auto;display:block;margin:8px 0}
+  .diagram-frame{overflow-x:auto;overscroll-behavior-inline:contain;margin:8px 0 2px}
+  .diagram-frame svg{min-width:700px;margin:0}
+  .cap{font-size:12px;color:var(--muted);text-align:center;margin-top:2px}
+  .langbar{position:sticky;top:0;z-index:20;background:#0f172a;color:#e2e8f0;
+    font-size:13.5px;padding:9px 16px;text-align:center;border-bottom:1px solid #1e293b}
+  .langbar a{color:#7dd3fc;text-decoration:none;font-weight:600;border-bottom:1px solid rgba(125,211,252,.45)}
+  .langbar a:hover{color:#fff;border-bottom-color:#fff}
+</style>
+</head>
+<body data-page-node-id="o5k5ALGv06WhqmeCLJAYVd">
+<header data-page-node-id="AVbAAsi8IST2TavGPgqChi"><div class="wrap" data-page-node-id="axmExVLdAB95Yeaa3BmCQC">
+  <h1 data-page-node-id="wYPTcBvFHVfwzQnHALDZmu">都江堰 → Harness 工程设计原则</h1>
+  <div class="sub" data-page-node-id="yJA6N2CRzVAFKJZuOUcGeD">根据延续两千二百余年的工程实践、原型观测与研究文献，整理六条可迁移到 AI Agent Harness 的主原则</div>
+  <div class="meta" data-page-node-id="H2A6HqOvWmRiZUzsNnFxQw">
+    <span data-page-node-id="CnAFqa5kSBXe923IK3Pw2E">生成日期 2026-09-04</span>
+    <span data-page-node-id="9gZTKVKrNITdHlRSagPH8r">证据分级 A/B/C</span>
+    <span data-page-node-id="aRj2XnwYcd05R694lWaOoO">核心文献：[1] <i data-page-node-id="ULCkQPAxazhJ2YUEnpc2qC">Sustainability</i> 2020, 12(6):2431</span>
+    <span data-page-node-id="JgHF9nlUdUwVUMOswjfqcW">主要数据：[5] 地方志原件；[6] 手册新闻稿转述</span>
+  </div>
+</div></header>
+<main data-page-node-id="vzlnM1kM4UUthwimns6IxE">
+
+<div class="card" data-page-node-id="JJVgtjX1RcuBTC9cMurWzx">
+  <h2 data-page-node-id="pFBeqmkA2Wcym9rNMae15e">结论先行</h2>
+  <p data-page-node-id="k6SEpEKJHWsX8OUqXR3zVm"><b data-page-node-id="8f4ZiCZg1nu5xhDb9osfmB">都江堰最值得保留的工程事实有三条：选择性卸载、硬容量边界、维护制度化。</b>
+  正文把它们拆成六条主原则（C1–C6），以便逐项执行和验收；十二条启发只作为这些主原则的来源与方法附录。</p>
+  <p data-page-node-id="dWoG6VuEY36oqfP12z7H7J">可复核的观测是：外江分走 <b data-page-node-id="EZ0LwXEGMQ8uRQnOfrL30u">35.8–39.1 % 的水</b>，悬移质分沙比为 <b data-page-node-id="tAWDtAh02DNaMopH9YGnwt">42.3–52.8 %</b>，卵石约 <b data-page-node-id="nFnNYh59G8xrrAC2DGnQpt">74 %</b>。
+  在没有逐年配对数据时，悬移质 κ 的保守端点为 <b data-page-node-id="2agBVCnDfoWcSmpIaca8vz">1.08–1.47</b>；其他 κ 值来自不同年份或假设，不能合并成“实测区间”。这些数字的来源等级、结论强度和待补原件状态见第一至四节数据表。</p>
+  <p data-page-node-id="vQz5LXigUXoNJyYCPFjDBW">正文给出六条主原则，以及用于审计这些原则的控制方程（第四节）；十二张方法卡片及其形式化表达、适用边界移到附录，并标注证据强度。</p>
+</div>
+
+<div class="card" data-page-node-id="JiQgUsQg1QA7Il1xnjCX0T">
+  <h2 data-page-node-id="toxU4D1r7BUMQfYcgRuhwB">目录</h2>
+  <div class="toc" data-page-node-id="BsIhXr6pDj5de0esEurDgv"><a class="toc-item" href="#core-C1" data-page-node-id="ANsE7DOgi43LJJQSpn2JSA"><span class="tn" data-page-node-id="615WqmVOI31V2BNaIsCa6k">C1</span><span data-page-node-id="2YvKbZKgPZjPpBWRBGQQr5">选择性卸载：让卸载通道优先带走有害负载</span></a><a class="toc-item" href="#core-C2" data-page-node-id="RIxmzBGv82E7CWBgYFG2Yt"><span class="tn" data-page-node-id="E0ug14S5J6P6vfAtB0PHEx">C2</span><span data-page-node-id="FT7KvX52MHFwCtf31qULwA">硬容量边界：用窄口和低阈值把上限写进执行面</span></a><a class="toc-item" href="#core-C3" data-page-node-id="6HWn8gb8tryH387mEvIlVO"><span class="tn" data-page-node-id="DpaEFqdStOXSmSKw7QrNTO">C3</span><span data-page-node-id="AYjN4joaCMfOJXnhaVKqif">可验证基线：标准必须能被重算、测量和追责</span></a><a class="toc-item" href="#core-C4" data-page-node-id="1bhx6kIWftgHfl1gC6OkUk"><span class="tn" data-page-node-id="q3SVlLF1vjZQ22MtWy1dUp">C4</span><span data-page-node-id="DiQzetfaUDnEYVjhItWCzB">场信号与显式授权：用结构信号排序，但不让信号授予能力</span></a><a class="toc-item" href="#core-C5" data-page-node-id="uqC5o0mdm5fGGijRwDeifb"><span class="tn" data-page-node-id="3M0J7XBx3OPXaiJjEuLqlz">C5</span><span data-page-node-id="2Y1BOvoF2cy3H4TBwyTwC6">维护制度化：把维护、对账和重建当作运行功能</span></a><a class="toc-item" href="#core-C6" data-page-node-id="4vR4DmsQdDd4VE5FQazVOp"><span class="tn" data-page-node-id="Lw13mdwWkqGnl1La2JRkr9">C6</span><span data-page-node-id="c35h1iwHEms5GDbqGD8y7z">组合结构与失效隔离：用可替换通道降低单点控制的爆炸半径</span></a><a class="toc-item" href="#appendix-principles" data-page-node-id="oU4SweqlF2mX0vZsrkMrSJ"><span class="tn" data-page-node-id="nvzNzVl8KC6ApKazUoS2wF">附</span><span data-page-node-id="ifqezZZ8AweMmrgaHLCUsn">启发 1–12 与方法细节（附录）</span></a></div>
+</div>
+
+<h2 class="sec" data-page-node-id="PRfwcq4AgVQIFQ5jUItbLs">导言：岷江 = 大模型，都江堰 = Harness <span class="principle-tag" data-page-node-id="nIukoDpTlTSUS4wqzyJW0t">总览 <a class="principle-link" href="#core-C1" data-page-node-id="Kqff2dNGt6rPBkzyvlAUcG">C1 选择性卸载</a>、<a class="principle-link" href="#core-C2" data-page-node-id="jY0wJQPDmFUdovX85m7w2A">C2 硬容量边界</a>、<a class="principle-link" href="#core-C3" data-page-node-id="g79w1yai6x87mtUEvJlWuB">C3 可验证基线</a>、<a class="principle-link" href="#core-C4" data-page-node-id="sAUFvPbGJ71zoteJsLzZRk">C4 场信号与显式授权</a>、<a class="principle-link" href="#core-C5" data-page-node-id="jyU1VsEBf7DCl4sz9hBs5H">C5 维护制度化</a>、<a class="principle-link" href="#core-C6" data-page-node-id="SnXFjheGEj1J2Debxm3WjX">C6 组合结构与失效隔离</a></span></h2>
+<div class="card" data-page-node-id="FPQuC8GAzFk52t5YFpxbeh">
+  <p data-page-node-id="mSnfZFh83e5T5pgER9aMFG">本报告把岷江来水与模型输出流作类比，但不把二者视为同一系统。
+  实测流量范围为 82.7→6 400 m³/s（77.39 倍）；82.7→10 120 m³/s 是“实测最小值 + 千年设计洪水”的设计包络（122.37 倍）。
+  都江堰同时依赖几何、外江闸、紫坪铺水库、现代调度和长期岁修，不能简化为完全无人值守的纯几何系统。
+  下表是贯穿全文的概念对照，后面每一节都可以回查到这里。</p>
+  <div class="tw" data-page-node-id="ALM839QkFszErXyBQyQmXF"><table data-page-node-id="muj5AbyAz9DF3uXtIEstiN"><thead data-page-node-id="CH43O9CFi2Nf9H3Jj4txmZ"><tr data-page-node-id="YN6RKHyxoQT68i9aSyPluD"><th data-page-node-id="G7gthQhBY2jt56akKXx9dM">岷江 / 都江堰（自然侧）</th><th data-page-node-id="7mwhABn4U4NZqmPccAtJfC">Harness（工程侧）</th><th data-page-node-id="OFWmAhnYINODRcMB4rWTEr">为什么这么对应</th></tr></thead><tbody data-page-node-id="D6NuJILqaaDmnDTmc6YUL3"><tr data-page-node-id="utPRAcQfcUUFg5AmJKCQTF"><td data-page-node-id="wHU2YZaIkPx4ZQPzMxfaHH">岷江来水（82.7 → 6 400 m³/s，77.39 倍实测范围）</td><td data-page-node-id="hpg0HCRunpJ4s1apfXR06G">模型输出 / token 流 / 事件流</td><td data-page-node-id="ZCRE3ctj4daRE5TXpL7rfi">渠首不能决定来水边界，只能设计通道；现代水库调度会改变输入分布</td></tr><tr data-page-node-id="GgIjp1Nkd3BrSb4gXHZzyN"><td data-page-node-id="ktd10KbSTh5sPSqWc05MdV">泥沙、卵石</td><td data-page-node-id="dHs2o49aefvXx58hBkV10d">无用上下文、冗余、幻觉、失败重试、过时状态、低价值工具输出</td><td data-page-node-id="NyMKFY82qDrbyzOXvH7bYz">「垃圾」的定义随场景而变，不能硬编码成枚举</td></tr><tr data-page-node-id="tyyoBFmlmzuSIcEUrN76WJ"><td data-page-node-id="pcgsEZgWqu0CwPtcSQCjg7">清水</td><td data-page-node-id="6oLuRCwMPcWxzuJevLV3Tb">真正进入模型上下文的有效信息</td><td data-page-node-id="MqSHcQdJ1bCWZT5TTnFeoj">被消费的那一部分，越少越精</td></tr><tr data-page-node-id="J6nE3KBN57AQcwlrHrO4WC"><td data-page-node-id="O5Hur9QiXdzWmF8zyatXW7">弯道（R = 850 m）</td><td data-page-node-id="dNR7SzJ9gVH5Up5WjqIrk7">候选的结构参数（衰减常数、卸载阈值、窄口上限）</td><td data-page-node-id="CDyKGa9tdZyqrqbvCTWDU2">参数可能影响全局行为，但仍需按项目测量与验证</td></tr><tr data-page-node-id="zImuNYn1dUrYnHbHLGyKLN"><td data-page-node-id="j9TlksHtZ4DtoAOzbACVux">离心力场 J⊥ = v²/(gR)</td><td data-page-node-id="fvdf2yRDh11b2zaHyWvL0b">分类辅助信号：给每个元素算出的连续标量 ρ</td><td data-page-node-id="FIDaRRQrJPfHBNDI34RWcC">连续信号可帮助排序，但不能替代硬权限规则</td></tr><tr data-page-node-id="gOp3hTTwoK2qb7hmxX8ZAN"><td data-page-node-id="0LNPDSlP2dQ7tJF4n8hiGS">鱼嘴（分水堤）</td><td data-page-node-id="iVaH5BU63nyuuZfbLZgc0a">入口分流器</td><td data-page-node-id="04pzowxEgbEqR38Kxwd2gi">把输入分成主链与卸载链，不做价值判定</td></tr><tr data-page-node-id="ZNfuAjKxfBMHqGoThARK3Y"><td data-page-node-id="Mjh7ETdndJPQedUNUDtudc">内江（凹岸）</td><td data-page-node-id="ZQ2UlcONxClhkwkBixtH0O">主上下文通道</td><td data-page-node-id="NUj5SznIJ18hUeEpcsrYAW">取表层：高价值片段上浮，注入模型</td></tr><tr data-page-node-id="9xH9gEKEJ0tAfoAwDDCkOg"><td data-page-node-id="kICXzkMelxu0j9zUMlLoPy">外江（凸岸）</td><td data-page-node-id="TXb5FPqHDY1HjNjHPKeqbB">卸载 / 归档通道</td><td data-page-node-id="lV0KL76u4E1JItOUDtvD9y">收底层：高冗余片段下沉，被带走</td></tr><tr data-page-node-id="AtstNs0gUhzTeaEXd5lBCY"><td data-page-node-id="Agt4KbR6qi2OtzRBUVCQf4">飞沙堰（堰顶 728.25 m）</td><td data-page-node-id="69XoCTFmaPaSj3M2J8t8BH">过载自动卸载口（熔断 / 降级 / 压缩触发点）</td><td data-page-node-id="SXld8sVI6rx6azqihWtvK6">阈值由几何决定；且应低到常态溢流，而非崩溃才启用</td></tr><tr data-page-node-id="06PVRhE5PE9HJq3BsNxaea"><td data-page-node-id="nqWP2AAE4iHFFA5DWH6cnG">宝瓶口（宽 20.4 m）</td><td data-page-node-id="XY9H2DeCn33hYLW23mUXvl">进入模型的确定性上限</td><td data-page-node-id="hwfpL1TDviK2EY58Y7ynBZ">窄口把「上游来多少」转换为「下游最多吃多少」</td></tr><tr data-page-node-id="s1lIO4tpeSfdlguWRl0BUz"><td data-page-node-id="BCpQTfCBuOyM8adlg1OAmA">壅水沉沙（宝瓶口前）</td><td data-page-node-id="uBoRsnKKjnJPO8evxDPCac">缓冲区 / 沉降区</td><td data-page-node-id="UHxotecQeGi4QB88RUtT5G">低速区让垃圾集中，才可能被批量清除</td></tr><tr data-page-node-id="aHguWKYdAzodZXuFOpTFId"><td data-page-node-id="cEkTcFvWvUqzgk2vCr3F1a">卧铁（埋于河床下 1.8 m）</td><td data-page-node-id="791H46MltQOGYgmAlVJx0B">基线事实：由事件流重算出的 state_hash</td><td data-page-node-id="tFzJvUJeAtZXSrFQkci3CI">可重放核对基线，但仍需明确权限与验收规则</td></tr><tr data-page-node-id="uE4jirn54irv3g6U0f8aWX"><td data-page-node-id="BAYAGw6NDr2RxHnO57gFk8">水则（十则）</td><td data-page-node-id="GnCAfDP6xz77lMHEwV1kZ2">可观测标尺（指标 / 刻度 / 计数器）</td><td data-page-node-id="9jV3cy9BE1dzUSJV9dfqTC">没有量具的规范等于没有规范</td></tr><tr data-page-node-id="IOuCCNHhRohRMaEmRBAB4D"><td data-page-node-id="csjq4VhHmIReybmVcRQsq0">岁修（维护制度）</td><td data-page-node-id="DoTFoJGk8D6BWcDcmiD9Jo">维护 Obligation</td><td data-page-node-id="lBHep4FaCAGXjlYgno5CvF">一本维护登记册记录触发条件、责任人和验收证据</td></tr><tr data-page-node-id="eyrjtCEw8IhyyjEQE99dlS"><td data-page-node-id="Tl8RQIZPyBzyaLiB8RrwWp">深淘滩</td><td data-page-node-id="lxkPs15mdA5VjWBSEaUIMl">清理沉淀：压实、重建索引、对账</td><td data-page-node-id="H74Z24tBCS2i3LGpGOij2n">把沉下去的定期清掉</td></tr><tr data-page-node-id="ENAr5jfxWdqPpMAEERmwkO"><td data-page-node-id="AZoMrrrKRouEI5l73OzVVS">低作堰</td><td data-page-node-id="LVDyx43BdG3YA2fnPPHL1K">不抬高卸载阈值</td><td data-page-node-id="tcXIjSl9XOz8r5k5Ajl4Ue">硬约束，不可为短期指标让步</td></tr><tr data-page-node-id="NkFwqx72RVZ04FWysZQq5P"><td data-page-node-id="xfDCVlCtG04x8w90k6Y0S1">无坝引水</td><td data-page-node-id="E0SPLO5o4sP5tJiIiC0tTC">平面组合，不在主链路加中央拦截</td><td data-page-node-id="s6kzV8Qf59Dx3uL7TLKsLD">用可组合薄层换鲁棒性，而非用拦截换精度</td></tr><tr data-page-node-id="xvQXe4eZMVgPieC94ASBRe"><td data-page-node-id="zJp5CGILuHho9tZyRN7U1I">成都平原灌区</td><td data-page-node-id="a9pR3OxOMPnCISJ5XpcCDR">下游消费者（任务 / 用户 / 上层系统）</td><td data-page-node-id="FVgm0cVFo1RGHQqnSbJBUo">系统的价值在出口，不在工程本身</td></tr></tbody></table></div>
+</div>
+
+<h2 class="sec" data-page-node-id="EXlN6SqcTqHCG1qGNoTFcl">〇、给非技术读者的一页纸（人话总览） <span class="principle-tag" data-page-node-id="8NHr79I7BvsLTUvDjnaeAI">总览 <a class="principle-link" href="#core-C1" data-page-node-id="UlZqqxPCBsuuDdGrrfwLgo">C1 选择性卸载</a>、<a class="principle-link" href="#core-C2" data-page-node-id="Z9jchHMt0cAHfYMlCM5BzX">C2 硬容量边界</a>、<a class="principle-link" href="#core-C3" data-page-node-id="mVxgEkvfrGEa4uSNXRfAAS">C3 可验证基线</a>、<a class="principle-link" href="#core-C4" data-page-node-id="1YXBZn10wDBEDV4CVgR9xE">C4 场信号与显式授权</a>、<a class="principle-link" href="#core-C5" data-page-node-id="R0AMNVvZ15jHkVBeLtHshD">C5 维护制度化</a>、<a class="principle-link" href="#core-C6" data-page-node-id="uJ62fknq725HDvCHFGhEZ1">C6 组合结构与失效隔离</a></span></h2>
+<div class="card onepager" data-page-node-id="ZRAdDMPmXXWgFbDTbbRVFJ">
+  <p style="color:var(--muted);font-size:13.5px" data-page-node-id="kC2imSDhmU0n1y9RH7vWMs">这一节概括工程事实、类比边界和六条原则；后文给出证据与验收契约。</p>
+  <div data-page-node-id="bId14ymjZEBf2rwwGsfVoE"><div class="q" data-page-node-id="alwPyzzoyzqu5AKZyHMgnA">这套东西在干什么</div><div class="a" data-page-node-id="48JVfeewp4bFGpWIIyTyGX">都江堰是一套分流、排沙和引水工程，约始建于公元前 256 年。现有工程仍承担灌溉和供水任务，但其运行也依赖闸门、水库调度与岁修。</div></div><div data-page-node-id="oYs6mFryfF9jdfHKTqfvkD"><div class="q" data-page-node-id="yyiFfTblfe5oaF63FYebIR">它解决了什么难题</div><div class="a" data-page-node-id="8hXlIcGBdEKwaCAp7hhxFV">岷江同时带来水、沙和卵石。都江堰把分水、排沙和定期清淤结合起来，减少泥沙进入灌区；长期运行不能归因于单一构件。</div></div><div data-page-node-id="vnDJRc4rtwQ4lTNAgfI6Fn"><div class="q" data-page-node-id="jydtbgFYsVvo30ep9fqqzb">它到底怎么做到的</div><div class="a" data-page-node-id="mjXA4yJxWCkAopFwjEuluV">三类机制共同作用：地形、闸门/水库调度和岁修维护：<br data-page-node-id="kh9vIYhGmcLo3VFLkuwM7o">① 在河弯处劈一道「鱼嘴」，利用水流拐弯时的离心力，让干净的表层水走内江、带沙的底层水走外江；<br data-page-node-id="EGObpDAIvHMFYbFTz5etT3">② 开一个只有 20 米宽的「宝瓶口」当咽喉，把进水量卡死；<br data-page-node-id="ArjsQvjPAsDQTD3U2mOX7N">③ 在旁边修一道只有 2 米高的矮堰「飞沙堰」，水一大就自动翻过去，顺手把沙卷走。</div></div><div data-page-node-id="Yhe80F5lPOnJRy8ZUUb9d2"><div class="q" data-page-node-id="dD54nePJE2cVIYVBbAn8Mi">一个可复核的数字</div><div class="a" data-page-node-id="Ag51nGTwdegaMIREnZKkBl">1970–1973 资料中，外江约分走 <b data-page-node-id="AkgLr9n1S47Y3PDcLB2QNQ">36%–39% 的水</b>，悬移质分沙约为 <b data-page-node-id="3pOFffkrhYRFGt01RNhnkp">42%–53%</b>。1975–1978 的另一组资料显示，约 <b data-page-node-id="JMPFIonVqZZHw5DBlPr8DC">74% 的卵石</b>进入外江；两组数据不能当作同年配对。另有转引资料称，到达宝瓶口的泥沙不足总量的 <b data-page-node-id="zVfL8vhPDGig6oUODjoPMs">8%</b>，原始试验页码仍待补。</div></div><div data-page-node-id="EgXz2Cw3ub76QNMAMVAu88"><div class="q" data-page-node-id="xRxUQ4Y2HrMTDAxw24r5ER">这跟 AI 系统有什么关系</div><div class="a" data-page-node-id="0uMAiu6yIm5JvIBE7CvDM7">我们现在给 AI 造的「Harness」（套在大模型外面管住它的那层壳）面临相似的压力：过期上下文、重复错误、失败重试和技术债都会积累。这里可迁移的是处理方法：先定义要卸载的对象，再测量卸载效果，并把容量与权限边界放在执行面。</div></div><div data-page-node-id="LiOHap5XaRotEelAn71U47"><div class="q" data-page-node-id="7C9s1nlX9QAiBRUlZ21eeW">六条原则</div><div class="a" data-page-node-id="ZqayaPzlxvS0FCeEGpsxH3">C1 测选择性卸载；C2 守住容量边界；C3 建立可重算基线；C4 只用连续信号排序，授权仍走显式规则；C5 给维护任务指定责任人和期限；C6 用下线演练验证替换与隔离。每条原则都要由项目填写验收阈值和证据。</div></div>
+</div>
+
+<h2 class="sec" data-page-node-id="7pxkKp2srwxviOsjJxRCum">一、工程解剖：几何约束 <span class="principle-tag" data-page-node-id="WABg1TGic3nELqCmQdAkWN">对应 <a class="principle-link" href="#core-C2" data-page-node-id="aPXDZnRXBBlrZppiYXV22L">C2 硬容量边界</a>、<a class="principle-link" href="#core-C6" data-page-node-id="FDB2O5xsRgco27o8W3Q4ku">C6 组合结构与失效隔离</a></span></h2>
+<div class="card" data-page-node-id="J2Ekds0jWVhdTjafTEMotQ">
+  <p data-page-node-id="bo05c3glolBXPt514oWVKl">鱼嘴、飞沙堰、宝瓶口展示了几何约束的价值，但现代都江堰还依赖外江闸、紫坪铺水库、调度和岁修。
+  几何是被动功能的一部分，不是完整运行控制。</p>
+  <div class="tw" data-page-node-id="kMCUBIGxzfvnTdcSl2prAn"><table data-page-node-id="iDsArpBFkx4TmCQRhq3kFy"><thead data-page-node-id="LLsJ9dWKJ0DYrj6v2OpRs7"><tr data-page-node-id="uW8EyJjRcsAaEwl18ytB5r"><th data-page-node-id="4pWjQPrfwzuDuUHSON73ke">构件</th><th data-page-node-id="tFxEB6K5YOgdlnN4UeVzWi">参数</th><th data-page-node-id="GaQ6UXB6IMOrKXoNzomQPH">来源等级 / 结论强度</th><th data-page-node-id="JLLuRofObOHiRwpJQHSIt3">来源</th></tr></thead><tbody data-page-node-id="XDqJIYFjXnVWbrZYcgIfpN"><tr data-page-node-id="SK73KCYCk3fmLKYOLTfrj0"><td data-page-node-id="uQ1goIB08VR9UxjC3k7Cwz">鱼嘴所在弯道曲率半径 R</td><td data-page-node-id="uB37H6I9ziktY7Cn2LV07V">850 m</td><td data-page-node-id="on3s1NuV2pNStxp1YLFcYY"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="rZtuGiwshraeacHUBqQDMT">来源级别 A</span><span class="evidence-note" data-page-node-id="ZQGPLBeFlSwBsWklOYK69w">结论强度：原文定位到第一章；页码待补</span></td><td data-page-node-id="mVpGT8XxWevx6hBQChENKc">[5] 第一章（scsqw.cn PDF）</td></tr><tr data-page-node-id="PXXvdjp3KTzGmaufFD3PB6"><td data-page-node-id="McJzNB6ZjO3qhU9WsRZent">鱼嘴（分水堤尖端）</td><td data-page-node-id="LOzEdjiFjbFvFawJds8I4p">长 30–50 m，高 8–12 m</td><td data-page-node-id="WKgffzoCwbaYh87rmfly7G"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="iBemyL41luXbReYC7XmDgC">来源级别 B</span><span class="evidence-note" data-page-node-id="kjtMu9vZlooBIX9vIrcnYl">结论强度：官方科普转述；测量原件待补</span></td><td data-page-node-id="Bf2hgZ3tSubFhDMMY9NPX5">[7] 词条</td></tr><tr data-page-node-id="H3GSx4DVHcp0kKZRG733Z9"><td data-page-node-id="8oSWRIdmMTjLIpJJGU3Z20">1936 年重建鱼嘴</td><td data-page-node-id="xISvtanKt5BXg9iyDsPOFq">长 31.4 m，全高 8.85 m（含 3 m 过渡层）</td><td data-page-node-id="cDxPYEfBxA3fBIpKrCW50S"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="UBhePH7dQG0muBzAjxPb3v">来源级别 B</span><span class="evidence-note" data-page-node-id="THCQk5RbygQFtBchEEoDak">结论强度：官方科普转述；测量原件待补</span></td><td data-page-node-id="G6ERlHgYAnVWgDp6zlLxMm">[7] 词条</td></tr><tr data-page-node-id="J9BM175CBztEMrFGPr7uXN"><td data-page-node-id="OtJUba5hApS0VFa5rKsHAY">金刚堤</td><td data-page-node-id="Z0dsdk7qV5Vkx3WqMY57Eq">内堤 710 m / 外堤 880 m；前宽 30 m → 尾宽 140 m，顶纵坡 5‰</td><td data-page-node-id="JESSiEOWGzHCGkRZstfsIp"><span class="chip" style="color:#b91c1c;background:#fee2e2;border-color:#b91c1c" data-page-node-id="h5MuzoJwbbT8K63VYP0d87">来源级别 C</span><span class="evidence-note" data-page-node-id="f6BYYVmwlTAEnbNTZrB8ZP">结论强度：百科材料；仅作背景</span></td><td data-page-node-id="PkAiwT94tS1GDgoZ2CZcSq">百度百科·鱼嘴分水堤</td></tr><tr data-page-node-id="s9dKMqUQeXUmidpYvExqTe"><td data-page-node-id="YNzVBvGDnXPwUsgoAQ5xB4">飞沙堰（侧向溢流堰）</td><td data-page-node-id="WWxBhnTl44UvpdSujNF7dO">宽度资料为 150–200 m 或 240 m，高 2.15 m</td><td data-page-node-id="BIhxBkGeyLCjSsTYLGffqp"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="VdKzTivyDUKwwb5FHyt73E">来源级别 B</span><span class="evidence-note" data-page-node-id="Husmz4MFkCe1uosBhQ5qgZ">结论强度：宽度口径未统一；按范围做敏感性分析</span></td><td data-page-node-id="fCoIWroR3LayJpgJsmeKJu">[1] / 四川省水利厅</td></tr><tr data-page-node-id="Wr6SKKGmjCsBIHgoDlRGVD"><td data-page-node-id="GTE6F2CnFHHNueiak2Ct69">飞沙堰堰顶高程</td><td data-page-node-id="EsCTqx7dkv6vnaG15nM7He">728.25 m；距鱼嘴 710 m</td><td data-page-node-id="hJ04iMWt2Dv6rZnkHgcmZl"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="hnsmVv1DMshc7lqisCvL3M">来源级别 A</span><span class="evidence-note" data-page-node-id="Xb0EfFItBwiZe8CnnybIeB">结论强度：同行评议原文；页码待补</span></td><td data-page-node-id="r4hBObk1VMzoO8Ih2sULys">[1]</td></tr><tr data-page-node-id="dPNs7BtBcUgKQc4hZLmlss"><td data-page-node-id="DRzxoyiDSFKH6iJp8ji2kc">宝瓶口</td><td data-page-node-id="FveNAEwks73HDn4pgl84qe">平均口宽 20.4 m（顶 28.9 / 底 14.3），高 18.8 m，峡长 36 m</td><td data-page-node-id="H9lyGgTUYGGcVWm0MWHXMB"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="EMp0vSxXXa1vTLSBlCmUi5">来源级别 B</span><span class="evidence-note" data-page-node-id="hoSunGvQ7QHlPEUMMXgIc0">结论强度：论文与官方科普相互印证；原始测量页码待补</span></td><td data-page-node-id="ecLBUwD40q1Qd4wXT8XLYp">[1] / [7]</td></tr><tr data-page-node-id="aFANL2wPAcgrzPEpegMbp1"><td data-page-node-id="rM6iYyHw9lMUNYXKeWRf6x">宝瓶口底高程 / 出口海拔</td><td data-page-node-id="yYe9s5LaUrubWsrDIIAEEu">716.3 m / 727 m；距飞沙堰 120 m</td><td data-page-node-id="fgQpW8KhvFOVFrcBRjHCDI"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="Tz5xz6sq8dFD36ETANw967">来源级别 A</span><span class="evidence-note" data-page-node-id="xWw7UecSlSNfDdmYAMcbCL">结论强度：同行评议原文；页码待补</span></td><td data-page-node-id="tFOcIvjGmu6Xena0XkOinA">[1]</td></tr><tr data-page-node-id="IvSJ0jrBIDHMB07C3OH6zQ"><td data-page-node-id="kZsAB6983ec2pcoDQGUGEb">内江河段</td><td data-page-node-id="pyg138n3WTCkcMd1h5nLrg">鱼嘴→宝瓶口资料约 1 070–1 250 m，局部宽约 70 m</td><td data-page-node-id="PB9CDCUKs5dum2ZG5XEDzL"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="EIFTlPP1JopLDDvuHvvqYA">来源级别 B</span><span class="evidence-note" data-page-node-id="tmhniZ8NA5v9GbYaihTAc0">结论强度：不同资料的起讫定义需核对</span></td><td data-page-node-id="imY29r8xtfgLZ53Tb7LpTg">[5] / 四川发布</td></tr><tr data-page-node-id="e4kWiSyX28uYMbhkFm0iA5"><td data-page-node-id="WmUYa7PUYA5TR27GR5egn3">卧铁（淘滩标尺）</td><td data-page-node-id="rXJJYrM5jFjBw3WwdxexKT">4 根，长约 4 m，直径 0.16–0.2 m，顶部距河床表面 1.8 m</td><td data-page-node-id="OPp41ydP6AvWMUPcFzvkX0"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="cnkj9wqRsNIDeagfWRaWuN">来源级别 B</span><span class="evidence-note" data-page-node-id="URL7UoFbDaX9f1tz3WqbCC">结论强度：官方科普；原始工程记录待补</span></td><td data-page-node-id="rpJuFwRKHEIRk1d8QaK28b">[12] / 中新网 2002</td></tr><tr data-page-node-id="nhS3U6A5XTFnYYMSfcuA5q"><td data-page-node-id="HPWYcQaUZnwjSrytK92Xuw">卧铁铸置年份</td><td data-page-node-id="wnCUOTEZE6IXI6jGMubwhq">明万历四年(1576)、清同治三年(1864)、民国十六年(1927)、1994</td><td data-page-node-id="MGMl2Xbx8NE1iE9EgRpf9P"><span class="chip" style="color:#b91c1c;background:#fee2e2;border-color:#b91c1c" data-page-node-id="9NMwSUmdrcxIeXKNrUbDVA">来源级别 C</span><span class="evidence-note" data-page-node-id="w3XAMUHeoKRVzfrKw217ox">结论强度：新闻与百科材料；仅作背景</span></td><td data-page-node-id="6cYWAFRTAWBQqfRiV6pmnD">中新网 / 百度百科</td></tr></tbody></table></div>
+  <blockquote data-page-node-id="e1dBoCYy8SuDsyX1SC1Zqh">几何关系校验：飞沙堰堰顶 728.25 m、宝瓶口底 716.3 m，二者高差 11.95 m；
+  宝瓶口平均口宽 20.4 m 仅为飞沙堰 240 m 的 <b data-page-node-id="dZCAjFbCZogAatJNS80o1R">8.5 %</b>。
+  “窄口 + 低堰”是一个可迁移的设计启发，具体比例仍需项目级验证。</blockquote>
+</div>
+
+<div class="card" data-page-node-id="LJ99lL32WIR4Llsl9tQy5t">
+  <h2 data-page-node-id="u8LgKnQ0E3RsHhFd6IbbNc">渠首平面示意</h2>
+  <div class="diagram-frame" data-page-node-id="5f2SPEI6MSFaAdnrqDwTBU"><svg viewBox="0 0 760 410" role="img" aria-label="都江堰渠首平面示意：岷江经鱼嘴分为内江与外江，内江经宝瓶口限流引水，飞沙堰把水沙侧向卸载到外江" data-page-node-id="zFtk71I8TQoHyGwnoIHOBT">
+  <defs data-page-node-id="fHRCxfJAkwNaXQfT0YwEku">
+    <linearGradient id="map-water" x1="0" y1="0" x2="1" y2="0" data-page-node-id="ngBunTAmZxmLN8GcquYFKk">
+      <stop offset="0%" stop-color="#60a5fa" data-page-node-id="aLlXVdmHNEacuFYwZWXxRD"/><stop offset="100%" stop-color="#1d4ed8" data-page-node-id="sBlnMmsdL0jaSvKETPLx6E"/>
+    </linearGradient>
+    <linearGradient id="map-outflow" x1="0" y1="0" x2="1" y2="1" data-page-node-id="ogARJDM7VUEe34H2AiCakQ">
+      <stop offset="0%" stop-color="#3b82f6" data-page-node-id="wIDXPqvVrOZgXn8VhKoEfJ"/><stop offset="58%" stop-color="#d97706" data-page-node-id="dFZUHDa9KF696mvf882zU0"/><stop offset="100%" stop-color="#b45309" data-page-node-id="TfA8NC3dPCrdbtqrYMPYpZ"/>
+    </linearGradient>
+    <marker id="map-blue-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" data-page-node-id="7bTovqeshmyZ9mSmEPiuUe">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ffffff" data-page-node-id="2rBf5Du6jNedIQzcqNLklr"/>
+    </marker>
+    <marker id="map-amber-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" data-page-node-id="0IfYoR3PEG5KldBn1Kuajp">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309" data-page-node-id="J7CH2SXE9a8mNaODM9TNDo"/>
+    </marker>
+    <marker id="map-teal-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" data-page-node-id="cUuTSLXvlwRqZxucPWBruN">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0f766e" data-page-node-id="oJ19W5tpYDlQB4Ba7tdA9P"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="758" height="408" rx="12" fill="#f8fafc" stroke="#dbe4ec" stroke-width="2" data-page-node-id="54BDg9erdaUUdnAdw78SD9"/>
+  <text x="24" y="32" font-size="17" font-weight="700" fill="#16202c" data-page-node-id="6f5yNsjzYcuvEJ6zGtPIkt">渠首平面关系</text>
+  <text x="24" y="53" font-size="12.5" fill="#64748b" data-page-node-id="ud9GAgeFNOoLFwKjIFAFHG">读图方向：来水从左向右，经鱼嘴分流；上支引水，下支泄洪排沙</text>
+
+  <path d="M28,203 C112,192 200,194 294,205" fill="none" stroke="#dbeafe" stroke-width="76" stroke-linecap="round" data-page-node-id="EdFMl9ftQGIl18yyALno3G"/>
+  <path d="M28,203 C112,192 200,194 294,205" fill="none" stroke="url(#map-water)" stroke-width="62" stroke-linecap="round" data-page-node-id="sirwcLsqGgBY7UHBzYb9Vo"/>
+  <path d="M294,205 C390,188 465,122 555,111 C606,105 650,107 703,112" fill="none" stroke="#dbeafe" stroke-width="54" stroke-linecap="round" data-page-node-id="AdfBZp39PReXfKKUoIujFD"/>
+  <path d="M294,205 C390,188 465,122 555,111 C606,105 650,107 703,112" fill="none" stroke="url(#map-water)" stroke-width="40" stroke-linecap="round" data-page-node-id="Mf05xwnZ2E1F6QYn9msiDv"/>
+  <path d="M294,205 C385,232 457,302 552,319 C610,329 662,323 724,306" fill="none" stroke="#ffedd5" stroke-width="62" stroke-linecap="round" data-page-node-id="3dxi9uIjcRX7VZJncCxsaZ"/>
+  <path d="M294,205 C385,232 457,302 552,319 C610,329 662,323 724,306" fill="none" stroke="url(#map-outflow)" stroke-width="48" stroke-linecap="round" data-page-node-id="ZCuiqX2w6Yyoi69OYfCO0C"/>
+
+  <path d="M92,199 C145,194 199,196 247,202" fill="none" stroke="#ffffff" stroke-width="3" marker-end="url(#map-blue-arrow)" data-page-node-id="WF9mphJGZTz7O7Ug3TPMMC"/>
+  <path d="M371,180 C423,153 468,126 523,115" fill="none" stroke="#ffffff" stroke-width="3" marker-end="url(#map-blue-arrow)" data-page-node-id="de5OqHNhKRSqMWDDiNyIhk"/>
+  <path d="M376,244 C424,274 468,301 523,313" fill="none" stroke="#ffffff" stroke-width="3" marker-end="url(#map-blue-arrow)" data-page-node-id="1FGGiwVkDAeysx5vwDtl4T"/>
+
+  <path d="M292,173 L268,207 L292,239 L327,207 Z" fill="#fbbf24" stroke="#92400e" stroke-width="2.5" data-page-node-id="XqJMDasdZHTPxo6QKkPDMX"/>
+  <circle cx="292" cy="207" r="25" fill="none" stroke="#ffffff" stroke-width="2" opacity=".9" data-page-node-id="BTeZlnmahjmHDg0k1ITKvO"/>
+  <circle cx="292" cy="207" r="17" fill="#92400e" data-page-node-id="ToZzqDPuDQ7ztWrHkoskcu"/>
+  <text x="292" y="212" text-anchor="middle" font-size="15" font-weight="800" fill="#ffffff" data-page-node-id="tIBsMNLzb5YoGEHsQBomIq">1</text>
+
+  <path d="M466,162 C480,201 494,246 510,283" fill="none" stroke="#f59e0b" stroke-width="13" stroke-linecap="round" data-page-node-id="zSecOv1ruMX1FmanlFNA3k"/>
+  <path d="M469,169 C483,205 496,247 508,276" fill="none" stroke="#fff7ed" stroke-width="2.5" stroke-dasharray="4 5" marker-end="url(#map-amber-arrow)" data-page-node-id="bhbAAsDcPCtQSNlZ9y3FwU"/>
+  <circle cx="487" cy="222" r="17" fill="#b45309" data-page-node-id="VmiiPxAzjcjf5OZHJPerKO"/>
+  <text x="487" y="227" text-anchor="middle" font-size="15" font-weight="800" fill="#ffffff" data-page-node-id="aDhWUC2aCszVZ08KVBAOU4">2</text>
+
+  <path d="M675,87 L675,137" stroke="#0f766e" stroke-width="11" stroke-linecap="round" data-page-node-id="33MHY56m7MCRVUUwN4Yz4r"/>
+  <path d="M686,112 C708,111 725,109 742,106" fill="none" stroke="#0f766e" stroke-width="4" marker-end="url(#map-teal-arrow)" data-page-node-id="XuuSWoscZcdmm4T2STalDb"/>
+  <circle cx="675" cy="112" r="17" fill="#0f766e" data-page-node-id="cqOdz1dW9906HnPiHXQXXx"/>
+  <text x="675" y="117" text-anchor="middle" font-size="15" font-weight="800" fill="#ffffff" data-page-node-id="Ifk39Vib1veHoOqtsr0N6P">3</text>
+
+  <text x="52" y="174" font-size="15" font-weight="800" fill="#1e3a8a" data-page-node-id="0v7hbhqfgkmq98HCiyx9fi">岷江来水</text>
+  <text x="52" y="232" font-size="12.5" fill="#ffffff" data-page-node-id="oTEhiTxks6qCcjOOIS3Iod">输入流量不可控</text>
+  <text x="430" y="145" font-size="17" font-weight="800" fill="#ffffff" data-page-node-id="HtzJG9NTEQrVcVCkkrrPCs">内江</text>
+  <text x="430" y="164" font-size="12.5" fill="#dbeafe" data-page-node-id="ElppPZr18S0mCIxHOwlsBO">引水 · 取表层清水</text>
+  <text x="566" y="322" font-size="17" font-weight="800" fill="#ffffff" data-page-node-id="ySjfabDHAAlvn0hcQIPBFW">外江</text>
+  <text x="566" y="345" font-size="12.5" fill="#eff6ff" data-page-node-id="W0YjbJG9TYOVvSDk8p5zoT">泄洪 · 带走底层沙</text>
+
+  <path d="M292,170 L292,91 L175,91" fill="none" stroke="#92400e" stroke-width="1.5" data-page-node-id="JhKpUaUAMLByo4UdZsb2vM"/>
+  <text x="50" y="84" font-size="14" font-weight="800" fill="#78350f" data-page-node-id="vb4eccgbDpnguNuTHx8k17">1  鱼嘴：分流</text>
+  <text x="50" y="103" font-size="12.5" fill="#64748b" data-page-node-id="5gA2x625yeCj514XLm2aE6">弯道曲率半径 R = 850 m</text>
+
+  <path d="M487,239 L487,371 L376,371" fill="none" stroke="#b45309" stroke-width="1.5" data-page-node-id="o6W37MfH1HANkQR9SHEAa8"/>
+  <text x="210" y="365" font-size="14" font-weight="800" fill="#92400e" data-page-node-id="UIhPuG7zjbMADCb2RxMHaj">2  飞沙堰：侧向卸载</text>
+  <text x="210" y="384" font-size="12.5" fill="#64748b" data-page-node-id="o4PEaFYvIUNOAqb13oa3Wq">宽约 240 m · 堰顶 728.25 m</text>
+
+  <path d="M675,87 L675,75 L660,75" fill="none" stroke="#0f766e" stroke-width="1.5" data-page-node-id="CSyB9MbC1NFMhgrcCOXuFv"/>
+  <text x="650" y="68" text-anchor="end" font-size="14" font-weight="800" fill="#0f766e" data-page-node-id="M6ABr79EPwTV2C0QQvD9nl">3  宝瓶口：硬容量边界</text>
+  <text x="650" y="87" text-anchor="end" font-size="12.5" fill="#64748b" data-page-node-id="Zn6dAOXv6U07A7bsYlwfBN">平均口宽 20.4 m → 成都平原灌区</text>
+
+  <g transform="translate(520 373)" font-size="12.5" fill="#475569" data-page-node-id="qY7q6C7WwNKhpkD07u62Ch">
+    <line x1="0" y1="0" x2="30" y2="0" stroke="#2563eb" stroke-width="7" stroke-linecap="round" data-page-node-id="J0ELCFI6jifP2inMjntjNv"/>
+    <text x="39" y="5" data-page-node-id="fL2dd4udhYCXLL5hhUK3TS">主水流</text>
+    <line x1="105" y1="0" x2="135" y2="0" stroke="#f59e0b" stroke-width="7" stroke-linecap="round" data-page-node-id="c0FYUeakZhkruZIzYNOCEJ"/>
+    <text x="144" y="5" data-page-node-id="yZAtUAmcvSfVJ5bX69IYoR">排沙卸载</text>
+  </g>
+</svg></div>
+  <div class="cap" data-page-node-id="cpMAHRl8cydX9zf2Y7b4J8">图 1　渠首三大工程平面关系（示意，非等比）。蓝色＝水流，琥珀色＝排沙卸载，青绿色＝灌区出口。</div>
+</div>
+
+<h2 class="sec" data-page-node-id="tdJ7d3x9wPG98BON2UE6jz">二、水文与泥沙：系统的输入分布 <span class="principle-tag" data-page-node-id="1vuncIgz5KS4sIg9iFtZ9A">对应 <a class="principle-link" href="#core-C1" data-page-node-id="huIDKvcXW2pScl7Mn0DS7v">C1 选择性卸载</a>、<a class="principle-link" href="#core-C2" data-page-node-id="zr6N3RIyDmMCCNUhWFQN3m">C2 硬容量边界</a></span></h2>
+<div class="card" data-page-node-id="pGA2oFwWFq4NUGccPl0C2A">
+  <div class="tw" data-page-node-id="p2XfDDSirFWe1KScWq6MP6"><table data-page-node-id="AlYjI1uuW0t4FMusVfCcMt"><thead data-page-node-id="K0AEzkoY6vb3bpfe74ASPx"><tr data-page-node-id="eZEtq9ngx5ObfRLL0Pkdoo"><th data-page-node-id="GKA2YW5gqSxL4xPf1LN8Em">指标</th><th data-page-node-id="tGKAvLUYnac0Zb6L5S4Tz2">数值</th><th data-page-node-id="tW8dC1PYwIzxvFaoOA6kla">来源等级 / 结论强度</th><th data-page-node-id="n4fahPiLKDGMo8sZ0kLzr7">来源</th></tr></thead><tbody data-page-node-id="YBkBNLV4gdLaBivVRtB3Fa"><tr data-page-node-id="qJW0y91ggrD7ptpVgOrZHV"><td data-page-node-id="6AVpt3eA3dorzu6tothY21">渠首多年平均流量</td><td data-page-node-id="u3QL0xkCdmLDrx2fklhrLA">468 m³/s</td><td data-page-node-id="ZgQliKjCqOwxG1g5JUBNDg"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="Yc9zwsOHYGMbA4ZvZHOoww">来源级别 B</span><span class="evidence-note" data-page-node-id="dlirfu5jZG519z2xxxvUsn">结论强度：新闻稿转引；手册原件页码待补</span></td><td data-page-node-id="6XhnvMIfzeVp6tgSRweYjo">[6]</td></tr><tr data-page-node-id="k8FDqBkxjIKawa9RnYpUCw"><td data-page-node-id="s3AR5QVwdrNYmlCMSAXgoN">渠首多年平均年径流</td><td data-page-node-id="oY2zIwjL9IngXftqx3hfEF">147.7 亿 m³</td><td data-page-node-id="xOJdDy4Ww29DAWsSAeiMe1"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="rKALsZSVATJCvyy2DY1WYV">来源级别 B</span><span class="evidence-note" data-page-node-id="9WXGJz8wQyBDHwXD9ZqCVa">结论强度：新闻稿转引；手册原件页码待补</span></td><td data-page-node-id="QEbfI2dt6ZITBP3AuiIFwE">[6]</td></tr><tr data-page-node-id="6V8uWMXwyMHp48DyZTbbyy"><td data-page-node-id="2EGIC7hsNmqujgAzPJK7WE">实测最大洪峰流量</td><td data-page-node-id="AcWi3thNOH6ObqPK7l8akf">6 400 m³/s</td><td data-page-node-id="e1EKwvrkvZPJ0PhZIa1Btw"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="iH0tZ9Qve3nHqRzxGtelEG">来源级别 B</span><span class="evidence-note" data-page-node-id="rW97jVUqLFGYbD9lWNZcSI">结论强度：多处转述一致；原始站点表号待补</span></td><td data-page-node-id="XOySCprQENl8zOGodkORl5">[6] / [16]</td></tr><tr data-page-node-id="f3blnN4zLeSPwo14BG4tUV"><td data-page-node-id="AL6QH2G6IspeuEAkcWXxNH">实测最小流量</td><td data-page-node-id="d0xie4XBPSzmrrNRoF7hqh">82.7 m³/s</td><td data-page-node-id="Et8VDYhcCXqBjQP7ITiHCE"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="Ht5fDxrLSs5u29ugwtHQ7D">来源级别 B</span><span class="evidence-note" data-page-node-id="85dp9gVfxc1q03wiBPILKP">结论强度：新闻稿转引；原始站点表号待补</span></td><td data-page-node-id="MA7dmLGPVHaGnO0uUkD3qq">[6]</td></tr><tr data-page-node-id="7zIE7BGVlkf1olURZCDnP6"><td data-page-node-id="gYTYb1RWS51aijRBXZpOuk">1000 年一遇设计洪峰</td><td data-page-node-id="mVd7OOAF2IbDFlgXYPuBNJ">10 120 m³/s</td><td data-page-node-id="LR0AViWj08jUO4b9vBrwdh"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="DrXZSy6RGEhA70hhHAYsse">来源级别 A</span><span class="evidence-note" data-page-node-id="9LucEw1PKLguHjzbAYAMXo">结论强度：同行评议原文；页码待补</span></td><td data-page-node-id="xZSD2h8BDN7GjOMPehPu8N">[1]</td></tr><tr data-page-node-id="qpJWKAqE2pFZRBBMWzv85I"><td data-page-node-id="BwKrBWChE9UXafKBnkEDEA">1933 年洪水（冲毁鱼嘴）</td><td data-page-node-id="mVCFwDDezGHVmhPyoORJpq">约 10 200 m³/s</td><td data-page-node-id="eaiBWpNuBmI3Btkc3ldsOv"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="kZVxGZa6P2wANaqGQowGl1">来源级别 A</span><span class="evidence-note" data-page-node-id="GC8aXpgyrUSE2PeU4ye1k7">结论强度：地方志原文；页码待补</span></td><td data-page-node-id="UfsaPW9e66R0rTLV7SS6OD">[5]</td></tr><tr data-page-node-id="upG8Hbmp6Omv9YxpRqMGHD"><td data-page-node-id="AnjS07KbQpMVYCQ9BgpCAZ">紫坪铺站多年平均悬移质年输沙量</td><td data-page-node-id="07c4z0iI33xH7xLOhbenh0">812 万吨</td><td data-page-node-id="8pnU3EjCb8DAzOyl1et29Q"><span class="chip" style="color:#b91c1c;background:#fee2e2;border-color:#b91c1c" data-page-node-id="KA5jOFFdxR6Do4nhiw0PvN">来源级别 C</span><span class="evidence-note" data-page-node-id="EkbSNvLqvfi5SVslgBaYPH">结论强度：百科转引；站点报告待补</span></td><td data-page-node-id="qRfhjR08Wc7ccVTZow8M6q">百科转引</td></tr><tr data-page-node-id="JOiP2WDPc77Tja8bkT4k9V"><td data-page-node-id="FFCn8Am5IwLIbWFkTzDajP">宝瓶口设计引水 / 加大流量</td><td data-page-node-id="BDfoxYKp48G59kxpzNv7zs">480 / 530 m³/s</td><td data-page-node-id="dUAvmarCMxNaAifphHEDZW"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="FHVuQmg8wCnYskvCE03RaK">来源级别 B</span><span class="evidence-note" data-page-node-id="jwNbh7Zxg0OZKpcQx9XwQG">结论强度：转引材料；原文件待补</span></td><td data-page-node-id="kiAJP9DsIBqaocrDmldyx4">引水电厅文件转引</td></tr><tr data-page-node-id="Ie06H3Tjv5BiCrYTQybdbR"><td data-page-node-id="k8aJlnfVtNipTIs0baxhuL">外江闸（1974）</td><td data-page-node-id="OMDCLhVuCBZhio0iGJJapq">全长 104.4 m，8 孔 × 净宽 12 m；百年一遇 7 700 m³/s 时泄 4 130 m³/s</td><td data-page-node-id="Vo2fwrtU3wPOr41nY7DoBV"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="thlIaVpiMCWh5gymoU8CU4">来源级别 B</span><span class="evidence-note" data-page-node-id="lUiRE90JURM8sS2gFx9lye">结论强度：官方科普转引；设计资料待补</span></td><td data-page-node-id="rAyFiYiY9RTKx2iW6T10Vo">[7]</td></tr><tr data-page-node-id="Owkg21iB7OXjVQWr1wG3D8"><td data-page-node-id="XFHTogqhFyMZ7A6ShAqyQL">成都平原地面坡降</td><td data-page-node-id="rojIe9jew5eqwFRug6bCGe">5‰ → 2‰（平均落差 4.4‰）</td><td data-page-node-id="q6NrtGTWZpDUnjHIgLvt4Q"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="xLHGoNwQ9q7dxqVbFniwB0">来源级别 B</span><span class="evidence-note" data-page-node-id="7KmMm2v7QRh0DP3SSHrdrp">结论强度：地方志与新闻稿转述；页码待补</span></td><td data-page-node-id="P32x1RrZhAOT2XcGfbtNfi">[5] / [6]</td></tr></tbody></table></div>
+  <p data-page-node-id="ZGsR7oSCOdr97Kmmu69wfs">输入的关键特征是<b data-page-node-id="5ErV8XSGRPDxkC572zXTKN">极端的动态范围</b>：实测最小 82.7 m³/s 到实测最大 6 400 m³/s，
+  <b data-page-node-id="5N0qaYdgW2UYK1u5iTQjnD">峰谷比约 77.39 倍</b>；若把千年设计洪水 10 120 m³/s 纳入，则是设计包络 122.37 倍。对具有长尾负载的 Harness，应检查尾部分位数，
+  而不是平均值。[1] 的模拟正是取了低/中/高三档（800 / 1 800 / 10 120 m³/s）。</p>
+  <blockquote data-page-node-id="awCpwVAYv7FhJ0cfJ9PQ0L"><b data-page-node-id="TDlzfgipEtgFfhRcsojlHo">实测最大洪峰 6 400 m³/s 可定位到 1964 年；断面表号仍待补。</b>
+  西华大学学报《岷江与都江堰对成都平原生存环境的影响》（[16] 李映发 2013，表 2）与百度百科（引 1937–1979 系列）
+  均载「<b data-page-node-id="T4p6Ee6aMP9TbcAvqAuRd2">1964 年</b>岷江上游洪水，洪峰流量 <b data-page-node-id="pKTlQN2bDqzEykhCICpoSt">6 400 m³/s</b>，渠首工程设施严重受损」。
+  文献中并存的 5 480 / 5 840 / 6 400 三套口径，实为同一场 1964-07-22 洪水在
+  紫坪铺上游水文站、紫坪铺坝址、都江堰渠首三个断面的结果——断面差使渠首值比上游高 16.8 %，可作为待核对的解释；
+  1933 年 10 200 m³/s 为叠溪地震堰塞湖溃决（非常规），不计入天然洪水序列。</blockquote>
+</div>
+
+<h2 class="sec" data-page-node-id="3zSv9CVepDDFWbrrqXhPBb">三、实测验证：分流比与分沙比 <span class="principle-tag" data-page-node-id="BdPFVIeVYG3ES6eXBicknG">对应 <a class="principle-link" href="#core-C1" data-page-node-id="Gk1VKtuVg3RHWSZNOEf1t9">C1 选择性卸载</a></span></h2>
+<div class="card" data-page-node-id="LxiaKpTgyHfB4ygqRQLiHX">
+  <p data-page-node-id="BUm97i1LP4MA6VrBsuVnEe">这一节混合了原型观测、模型试验和转引资料；表中的来源等级与结论强度分开看，关键数字仍需回到原始页码/表号核对。</p>
+  <div class="tw" data-page-node-id="fvHS2AfJoH0yPINj8nPUW3"><table data-page-node-id="bNhpgFQqusxx37CD5uAIkj"><thead data-page-node-id="cSG1GpbosgFB1tZzfA5kH8"><tr data-page-node-id="cCOxDklMFfQdYlCd0BGXZ4"><th data-page-node-id="njce0Dl9W3wXa8gEJfJKRW">观测项</th><th data-page-node-id="q3WCuBpL8dsWyvbyQZEmrv">结果</th><th data-page-node-id="7vPPQ1v92CTA5CUjkABymu">来源等级 / 结论强度</th><th data-page-node-id="aEVSUEMterCW6uy8DDhW0u">来源 / 说明</th></tr></thead><tbody data-page-node-id="78HqX9E3VgSfVPmsmKMMX7"><tr data-page-node-id="hwkDyAdqNsKMgxd731ul2C"><td data-page-node-id="WWufa3ATZZ0Efsf46kNpyD">外江分流比</td><td data-page-node-id="iXnkLb3B7U2TSU5VAaTwCC">35.8–39.1 %</td><td data-page-node-id="ACFRJIn2PTuyyR9MGc6fYK"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="zWgipplrs0o056rzyTk9Xm">来源级别 A</span><span class="evidence-note" data-page-node-id="afsyshFTCPRXD3smIPUiYw">结论强度：地方志原型观测；表号待补</span></td><td data-page-node-id="jaPJsPUiUOlYC857WdV1ji">1970–1973（[5]）</td></tr><tr data-page-node-id="YD4HWnjbuENrwCHXMB7QlO"><td data-page-node-id="i5xsVIGECaQSkVQKUgRrpS">外江悬移质分沙比</td><td data-page-node-id="1FLbU3kDbTtt4RJzUC6EC0">42.3–52.8 %</td><td data-page-node-id="YaX6IKKKXqJp0NeQ6blzj5"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="Tq8UDkMQmWrMXXHVsgLiHs">来源级别 A</span><span class="evidence-note" data-page-node-id="Q60NZCeH0aGJ9YVygSJv1r">结论强度：地方志原型观测；表号待补</span></td><td data-page-node-id="pDa7dIZ2LQJk0nI2781r55">1970–1973（[5]）</td></tr><tr data-page-node-id="D1BGDmoDzGrMbFrEKxq5kS"><td data-page-node-id="tvrtK6twHElZoMTu11RJOb">进入内江的卵石占岷江总来量</td><td data-page-node-id="D4ZnLgUly5XXxarTH4JVHY">26 %</td><td data-page-node-id="ZS52vlPaReAE6mWG6X4LBm"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="mOwT56pm608ADcGGqKIBiS">来源级别 A</span><span class="evidence-note" data-page-node-id="BVi1GdbHkrrGJH6NfYcpMt">结论强度：地方志断面分析；页码待补</span></td><td data-page-node-id="qN40RxCh0kBJSy9a7ZVuda">1975–1978 1 号断面（[5]）</td></tr><tr data-page-node-id="cS3VnaXcT3EsfMRDPfBEO3"><td data-page-node-id="lfbD5Aom2kdFoXuIh2yOFY">内江推移质占比（变态动床模型）</td><td data-page-node-id="KBI7O5CdZ3PJNv08vzhRqg">29 %</td><td data-page-node-id="oMRL1YBwrJD3scgySbTn0C"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="9g8gSupb6rIG1ElUdcGGcI">来源级别 B</span><span class="evidence-note" data-page-node-id="YZ5zFBLBnDuuWUvNnh74q8">结论强度：论文转引；试验原文待补</span></td><td data-page-node-id="PodBxRrGzOChZZcgDnKLtO">[1] 转引其参考文献 17</td></tr><tr data-page-node-id="wL4Pe4vhKslHaFboH9TDNi"><td data-page-node-id="oHUg8d1NlF1UiKHILCib5a">飞沙堰排沙启动阈值</td><td data-page-node-id="QCTil44RsKhfdl1qLKFvzn">内江流量 &gt; 500 m³/s</td><td data-page-node-id="EX7oohcurI8cY7QIFs2E5A"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="ReORwYxOLwKwyX8c2nK3oK">来源级别 B</span><span class="evidence-note" data-page-node-id="k0HzOhTXNjkSvplAgPufIv">结论强度：论文转引；试验原文待补</span></td><td data-page-node-id="BYqcdIKEQSsyFQwtFsd4ve">[1] 转引其参考文献 12</td></tr><tr data-page-node-id="hb6Wffg6zWDSvGdIFhsKjL"><td data-page-node-id="HtMW8DgEnVGSKBWLh6oMXu">内江 1 000 m³/s 时飞沙堰分沙比</td><td data-page-node-id="pklkPKbrIe44UIbXqaE52E">≥80 %</td><td data-page-node-id="F5lD2BCIj7wEZdd1KVXQmF"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="Qahm5eXlb2v0bUdrjvSuAZ">来源级别 A</span><span class="evidence-note" data-page-node-id="jM8R69IQKE80XcB9Fa2pai">结论强度：地方志原文；页码待补</span></td><td data-page-node-id="bLQfRxd7SXIJxzyM0cAJpQ">[5]</td></tr><tr data-page-node-id="p0mCh42lEfbOqddFLrb8I5"><td data-page-node-id="ekjUClUvHeYBMTM6HCqVEZ">内江 &gt;2 000 m³/s 时</td><td data-page-node-id="ey5lGHKFpJhWYIQDIOhmXG">分流比 &gt;40 %，分沙比约 70 %</td><td data-page-node-id="uAhgmr9d2DOJ32Pw2SySmo"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="DwQ35IcPxe0Fh7HqOvduVL">来源级别 B</span><span class="evidence-note" data-page-node-id="mWub7fEGBELoMQFBYWOIcP">结论强度：书稿材料；原件页码待补</span></td><td data-page-node-id="LWgOiPNlSftD3zTOh2g4pB">科学出版社《都江堰》书稿</td></tr><tr data-page-node-id="Kg8u6CkWJ5FruJy6qe1tk0"><td data-page-node-id="DnFDF3VNFFDa9h5ZQLHu7P">飞沙堰对进入内江推移质的排出率</td><td data-page-node-id="3LKhHWXZLGQTjDEZu1W9Pa">&gt;90 %</td><td data-page-node-id="2PvKe78niumUiIJeYVYkyJ"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="9vnwTCFVuRSB14Ogwh9f8Z">来源级别 B</span><span class="evidence-note" data-page-node-id="BNHcEkugSVyrAVvoZytqdO">结论强度：论文转引；试验原文待补</span></td><td data-page-node-id="iDOMfeD4Tbgn7Bb9FHZhW4">[1] 转引其参考文献 19</td></tr><tr data-page-node-id="jB8ObjgVMYMgaCgmfHCHVZ"><td data-page-node-id="qBcGjISxeOBhpw8RdS4RW1">最终抵达宝瓶口的泥沙占岷江总沙</td><td data-page-node-id="47kG67Ok1W8Bo3DAvRgpMd">&lt;8 %</td><td data-page-node-id="JnMRLgCDA0IlCTX5jDcDZM"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="4op0NbGDG0BGdx74JWieGJ">来源级别 B</span><span class="evidence-note" data-page-node-id="aXh66yHTupLmFsHubAhApd">结论强度：论文转引；试验原文待补</span></td><td data-page-node-id="4Jeu638uK6NvYpph1piA9t">[1] 转引其参考文献 17</td></tr><tr data-page-node-id="blVdXGHucz3AVI1n3NDy9s"><td data-page-node-id="HYuUT2qTYIFqMveJQX9eYC">1974 外江闸建成后内江分水</td><td data-page-node-id="99w7q6Exh7yNuynLOtfNp6">春季约 75 %，汛期约 37.5 %</td><td data-page-node-id="udr4Mmitvv7hxXe0lhC7yn"><span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="HSpZ3M4ucCBXYeBCRR5d1W">来源级别 B</span><span class="evidence-note" data-page-node-id="zLhj3wRVMETpMZfxP5qWnt">结论强度：论文转引；原型资料待补</span></td><td data-page-node-id="yFZEN6tqwOyoMwuipsCUXW">[1] 转引其参考文献 10</td></tr><tr data-page-node-id="WsQfDDLg0ALBMJoiF49MBk"><td data-page-node-id="4mo5xoSzDuBr5zJfDXJ791">1965–1979 汛期内江分流比区间</td><td data-page-node-id="iuGBgGejykhhTGmEJsFVEw">39.6–62.2 %</td><td data-page-node-id="oCr7lVl1ZHrePUKOqmDLFH"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="aDy6KDCXYRlsgpNefHG6LI">来源级别 A</span><span class="evidence-note" data-page-node-id="PI5TxMIVIQMBFenBXfzLPT">结论强度：地方志表 6-5</span></td><td data-page-node-id="xVbiVDLxTHKOzrSgSssFve">[5] 表 6-5</td></tr><tr data-page-node-id="qxPFLjPiW9xpzCUcHZ01uS"><td data-page-node-id="zGRc4X5BverXqEAFs1t1fU">分流比随流量的拐点</td><td data-page-node-id="iDADZKLkdOQJUDQ95FLGH9">Q≈5 000 m³/s 时内江约 40 %，Q=7 000 时约 48 %</td><td data-page-node-id="D66WjW2FjrhRGl2AVWZYH1"><span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="IuvEyduutUAQ1GN8ElZgXv">来源级别 A</span><span class="evidence-note" data-page-node-id="s7pws5HDVdh9eizJhqcJqm">结论强度：地方志图 2-6</span></td><td data-page-node-id="HJIOBzzLJq453bXepUsgiQ">[5] 图 2-6</td></tr></tbody></table></div>
+  <blockquote data-page-node-id="9WXZJo5fpb3d7WQp7ICDzZ"><b data-page-node-id="CE3Czk92LvZDc4CMkMSttN">“分沙比高于分流比”是可迁移的工程启发。</b>外江以 ~37 % 的水量带走 ~47 % 的悬移质和 ~74 % 的卵石。
+  到宝瓶口时，岷江总输沙只剩 <b data-page-node-id="vWcVYgUtCzruVjMek6JDwP">&lt; 8 %</b> 能进入灌区。</blockquote>
+  <h3 style="margin-top:18px" data-page-node-id="uuYeTsHw7onBlIcgnGeMlB">卸载选择系数 κ = 分沙比 / 分流比</h3>
+  <div class="tw" data-page-node-id="eOzLysPpMNpzpIOHXqEOxg"><table data-page-node-id="YNJPQGRBSENTfdVDSWLvZq"><thead data-page-node-id="NfLCdqa7enIMJJh8e46z4S"><tr data-page-node-id="nyZboS6clSNjMz10cqpB2N"><th data-page-node-id="E5BXyYE07QQJo1O6yEsAbw">通道</th><th data-page-node-id="CTgbugAQyFHuSwwhF89b1P">分流比（水）</th><th data-page-node-id="5ExGcoyIMQyUf1eQQqltLZ">分沙比（有害物）</th><th data-page-node-id="xsvNFuvS1z1jZrnBgy8XUE">κ</th><th data-page-node-id="CSsVj3So6rFUxruzed6EFa">说明</th><th data-page-node-id="HBnzF9NElL4JtWmsXlN3Tz">结论强度</th></tr></thead><tbody data-page-node-id="rd5pCCIZyMJS4nkdV5dM6L"><tr data-page-node-id="cHWaYi5naq19yc3rxE8cEh"><td data-page-node-id="mYSIh1GedJud16xF18oP9L">外江 · 悬移质（保守下端点）</td><td data-page-node-id="f8BAXGTwl8e6VRsGaaPHEy">39.1 %</td><td data-page-node-id="xJ1MoZAGh7eMqlbhMTGu4M">42.3 %</td><td data-page-node-id="AHoQoHsvgFMRbaBW1NnXcT"><b style="color:#0f766e" data-page-node-id="NgucTM4NTUv3E5pEaywEdy">1.08</b></td><td data-page-node-id="W6x837MZ75rrlcs5u7HAgY">42.3/39.1；跨年份笛卡尔端点，非逐年配对</td><td data-page-node-id="4YC5nXVJGoDOjuDLVXFgrT">中：跨年份范围的保守端点，非逐年配对统计</td></tr><tr data-page-node-id="YFbdFIJhzBfOqCeNKgWtJD"><td data-page-node-id="qIIPgRSFA79BCXclJFOn6P">外江 · 悬移质（保守上端点）</td><td data-page-node-id="P7ToRRDU0usUp2OrJdr121">35.8 %</td><td data-page-node-id="AAfpYA0sAjCBW4zEw2GF50">52.8 %</td><td data-page-node-id="UJPwerukbX8cx9HJZ8PGp2"><b style="color:#0f766e" data-page-node-id="Ra3FCc0IQNXq0lnPrGrqHw">1.47</b></td><td data-page-node-id="z0xbnnqjiLDGR9arVq6qma">52.8/35.8；跨年份笛卡尔端点，非逐年配对</td><td data-page-node-id="74qrVMkKD9w2oqDXitHtNR">中：跨年份范围的保守端点，非逐年配对统计</td></tr><tr data-page-node-id="Kfll9iJ65eRBYsqBByWAUB"><td data-page-node-id="jZMWJ5dsD5y2xaxMgktcSr">外江 · 卵石推移质</td><td data-page-node-id="zr5H8Sl7s8lxSHRX3Zz1et">37.5 %</td><td data-page-node-id="jtj3ioC6XOEoDExlhN3nuS">74.0 %</td><td data-page-node-id="3NwtMUHkwSKOHkDs4mmEBh"><b style="color:#0f766e" data-page-node-id="9Ykoe28vfq6AF4xqOowL4l">1.98</b></td><td data-page-node-id="BmGpwcoePdzTx7hsLe7skW">1975–1978 卵石输移率反算</td><td data-page-node-id="02wGg5W9ed3slRn2DvHhuc">中：来自另一观测期，不能与悬移质端点合并</td></tr><tr data-page-node-id="vIvjEnytVdBQuYpp4RJhQn"><td data-page-node-id="AlHPl1Z4QQfBGiQNKrcuf2">飞沙堰（内江 &gt;2000 m³/s）</td><td data-page-node-id="SOBiQzQLV22WHFH8kOmpea">&gt; 40.0 %</td><td data-page-node-id="tlBlKsAt9Z6tVCHojxxAtC">70.0 %</td><td data-page-node-id="ucHyxNzJJ16XYgfEdwnUrS"><b style="color:#0f766e" data-page-node-id="wNSR1xsaEKIrqbGeFdSupM">≲ 1.75</b></td><td data-page-node-id="MAdLrqDBKY6tnCprDKTdSS">分流比实际 &gt;40%，故 κ 只能写作约小于 1.75 的上界</td><td data-page-node-id="Nqcls6hEz9LGN1OAiuZCTR">低：分流比仅知下界，κ 只能给上界</td></tr><tr data-page-node-id="KjD7SacoOtKDLS92dgMMX0"><td data-page-node-id="Xn304OFsfvt73XpXTuz2z3">飞沙堰（内江 1000 m³/s）</td><td data-page-node-id="v7U4XuIeT5O1OIxlroCjoC">假设 50.0 %</td><td data-page-node-id="Fz7yz2RUOPmGMQiGG6Clec">80.0 %</td><td data-page-node-id="7BcRuBvq1meMjUKflRmPIN"><b style="color:#0f766e" data-page-node-id="TYQvGQYGsXJJnNjTjWLhT8">约 1.60</b></td><td data-page-node-id="IcNKdVBETB9BfwBmZAz1f1">分沙比 80%+，分流比按 50% 假设；不是实测配对</td><td data-page-node-id="bHjERlSC31ZM8WtCmZiDgV">低：分流比采用 50% 假设</td></tr></tbody></table></div>
+  <p class="cap" style="text-align:left" data-page-node-id="hPwOt9JLTa3fUJ6qdvKmor">κ &gt; 1 表示卸载通道对有害物有选择性富集。悬移质的保守端点约为 1.08–1.47；
+  卵石约 1.98 来自另一时期；飞沙堰在 &gt;2 000 m³/s 时只能得到约小于 1.75 的上界，在 1 000 m³/s 时约 1.60 依赖 50 % 分流比假设。这些值不能合并成实测区间。</p>
+</div>
+
+<h2 class="sec" data-page-node-id="YXIjMYmHkCY2C1HD4RG25K">四、公式与实算验证 <span class="principle-tag" data-page-node-id="z9PVJsXRmkwI5AmKpXn1NF">对应 <a class="principle-link" href="#core-C1" data-page-node-id="XBhBCSozvx7eGBDC2xXtjm">C1 选择性卸载</a>、<a class="principle-link" href="#core-C2" data-page-node-id="Cmi2jdZWHYpA6rAnfCsBVi">C2 硬容量边界</a>、<a class="principle-link" href="#core-C3" data-page-node-id="UqtyuRNDe7zAMBGophqtwp">C3 可验证基线</a>、<a class="principle-link" href="#core-C4" data-page-node-id="CzxuC3m5xZyd45AxEKJWhZ">C4 场信号与显式授权</a></span></h2>
+<div class="card" data-page-node-id="AGNcBmf5q3alqDEBCDgObm">
+  <h3 data-page-node-id="lWiQdVVMHUe2eC7fsE8DZE">① 弯道横向水面比降（螺旋流的驱动力）</h3>
+  <div class="fx" data-page-node-id="0QVGmf2YYB1P9HNIuPFY8n"><code data-page-node-id="PY0Kcth9Pa243RgqrFkAnY">J⊥ = v² / (g·R)　　g = 9.81 m/s²，R = 850 m（[5] 实测弯道曲率半径）</code></div>
+  <div class="tw" data-page-node-id="1CbClkHbMVfYWkupU6wNwk"><table data-page-node-id="yjk6RRtfZVQAeTJsX4P5R8"><thead data-page-node-id="kg72lfkn3rJZreSaJrYXJg"><tr data-page-node-id="mJV1rbN5uJEpL7P3lX4zvi"><th data-page-node-id="LzJeE8yd4UhQ06rRDTVG4g">纵向平均流速 v (m/s)</th><th data-page-node-id="ND3uqF0r1Z6uRVdCJCKtOf">横比降 J⊥</th><th data-page-node-id="CO09iqumhr3f9ebQhEmEvz">内江宽 70 m 的横向水位差</th><th data-page-node-id="MXdceaKXyU21Q1ESwsD5mh">全河宽 280 m 的横向水位差</th><th data-page-node-id="DCfa83jTlCpe2QQRCMuDve">结论强度</th></tr></thead><tbody data-page-node-id="hPvxdHWq0gd8jKoWEdQ3ER"><tr data-page-node-id="NVfCp3dw0qC6tfgHOm79XV"><td data-page-node-id="Bsf3iD3YGMURiMdHbKXnT8">2.0</td><td data-page-node-id="NENPOSedA8xWJCFQHcXBwv">4.797e-04</td><td data-page-node-id="n8eBdo3PE1UoYUEI5VHBDb">3.4 cm</td><td data-page-node-id="xKUcNRE4J0BzNMG72MSkQ5">13.4 cm</td><td data-page-node-id="R7Kiefwwa9DChtKF8IsEch">中：标准关系；流速与宽度为情景输入</td></tr><tr data-page-node-id="4sBFGnZkQdOIxcH06IBVLD"><td data-page-node-id="deavYUOmonVWmZzNMeKKSg">3.0</td><td data-page-node-id="jnumpXw0zHIyr7Ypt3z3jW">1.079e-03</td><td data-page-node-id="GXKCy3EFNOqjPnD15KUsPo">7.6 cm</td><td data-page-node-id="IWz4QodTXDWKynJDtJQxOw">30.2 cm</td><td data-page-node-id="86EgW2guDI6T8fHoLNMBzG">中：标准关系；流速与宽度为情景输入</td></tr><tr data-page-node-id="cwYWvssUbeSb04gWDP13N9"><td data-page-node-id="q2GXcYFVoHwGnKvZCCZs72">4.0</td><td data-page-node-id="Wak9ZQhFu5eDUfDCWZa7u6">1.919e-03</td><td data-page-node-id="jW96hbtBF59p5ID3l4iynI">13.4 cm</td><td data-page-node-id="QbbEUoM8dbl2g661RJMtuS">53.7 cm</td><td data-page-node-id="PVboCq35uMNr7huxO394Ro">中：标准关系；流速与宽度为情景输入</td></tr><tr data-page-node-id="hp9XPsKBGaGvEviT9IfHAw"><td data-page-node-id="PYaWmWgJQCBAydpClATvdX">5.0</td><td data-page-node-id="HpAPqGmfJwWQUEjA5iBmAP">2.998e-03</td><td data-page-node-id="5Ivh9HHfAPg3dPa6XtqH8C">21.0 cm</td><td data-page-node-id="Voo3Y7VBWyPsXoESar0WJt">83.9 cm</td><td data-page-node-id="d5xrLwjDGv5RaElVryAsaQ">中：标准关系；流速与宽度为情景输入</td></tr><tr data-page-node-id="rsXekMcMMJisCzQRgomrAu"><td data-page-node-id="iMXEJjgttKMIsuopBSNgnC">6.0</td><td data-page-node-id="wT55n8kFxEThWBSSERlHfq">4.317e-03</td><td data-page-node-id="fH2URhqoGBfExaD9wXc4Un">30.2 cm</td><td data-page-node-id="ZQwrMQ0F6LPexnAsd6Uo1t">120.9 cm</td><td data-page-node-id="c3zVICNTTDkMz2d0uIAxWq">中：标准关系；流速与宽度为情景输入</td></tr></tbody></table></div>
+  <p data-page-node-id="3oWbetDsZrHWmnD7z6DYjD">曲率强度判据：取代表性全河宽 B ≈ 310 m，则 R/B = 850 / 310 = <b data-page-node-id="M6j2BSlF0sKJ2NEa8XiaJ1">2.74</b>。
+  R/B &lt; 4 属强曲率，二次环流充分发育——这为减少逐颗筛分提供了几何解释。</p>
+  <p class="cap" style="text-align:left" data-page-node-id="xEjfWI8q6MnCFelBFRgA1o">宽度口径说明：本节出现三个宽度，不可混用——B ≈ 310 m 是曲率判据所用的代表性全河宽；
+  280 m 是上表「全河宽」列所用的全河宽；70 m 是上表「内江宽」列所用的内江宽度。
+  280 m 与 310 m 来自不同资料的口径，尚未统一。</p>
+</div>
+
+<div class="card" data-page-node-id="xegxXqeWcpbMo2ck8vDBS8">
+  <h3 data-page-node-id="TssKnI39iDCJEkyYD5DWQG">② 飞沙堰堰流（卸载通道的流量—水头关系）</h3>
+  <div class="fx" data-page-node-id="UP4IP5faesnZvySYc86nK9"><code data-page-node-id="oSWpkYRZ5c8UGDwJDAlMDZ">Q = m·B·√(2g)·H^(3/2)　　m ≈ 0.385（宽顶堰），B 分别取 150、200、240 m
+  反算：H = ( Q / (m·B·√(2g)) )^(2/3)</code></div>
+  <div class="tw" data-page-node-id="TPCINYtGCnYKcpRscPPLL5"><table data-page-node-id="CYJAVqojWRa7zFiHETmpof"><thead data-page-node-id="dNzvWQYJXw4FWLGguI8BMH"><tr data-page-node-id="bwlC7TzMRC3KVs5WmAeo8M"><th data-page-node-id="Y5DRqILI1rhyCHsdqYXRwA">假设堰宽 B (m)</th><th data-page-node-id="Q37rs3mYnaC9NuWS5JkGB1">泄流量 Q (m³/s)</th><th data-page-node-id="C5vP29SkPlSdDxH0YAV3aB">堰上水头 H (m)</th><th data-page-node-id="BWcmFVbJN1sTtOOI1vnFIx">上游水深（堰高 2.15 m + H）</th><th data-page-node-id="qUiKbUeGTcJESUGKsAF5CZ">结论强度</th></tr></thead><tbody data-page-node-id="0LSUp6npCoN06pcXSRgOaR"><tr data-page-node-id="DRvaXDVKf992m2109XC3OK"><td data-page-node-id="9a6G0IlWcTiSji9PwI5J1v">150</td><td data-page-node-id="8zk5qZ35PjUiwAFFknQcrC">500</td><td data-page-node-id="CMuONFkfZ9iz4VzDy6w1kG">1.56</td><td data-page-node-id="GHwV1LkXcheOLPj7CJ81yW">3.71</td><td data-page-node-id="84q9cohEU7MD5PmuH41XLZ">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="Ys7IQVPhMvnNAtSNlDfLbk"><td data-page-node-id="RIkC4HIJ69MjBx5ZmL3Fyi">150</td><td data-page-node-id="ZbcbUhzpoVNbLd8MuCbMk5">1000</td><td data-page-node-id="L5gCMAuaCAhCj1nBtvi6bf">2.48</td><td data-page-node-id="KhSPbglBRmbcUlwwbeX6CT">4.63</td><td data-page-node-id="rSQlClCwNNbKxdmH9FQqhp">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="zIWCBhpFHFzypRmhkmxzhC"><td data-page-node-id="oXB9VSepaLsCOoQIl4gueQ">150</td><td data-page-node-id="uSdqUW72UA7M6S1PnXE81r">2000</td><td data-page-node-id="usTdWK9q2lQWwaq0sASZzk">3.94</td><td data-page-node-id="G1PcXCjk5DRipD3jURxKaX">6.09</td><td data-page-node-id="fPrVlYMhwMPH59G39szEcD">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="EKvpvYA1wKOgGg9yMkUP5m"><td data-page-node-id="dFPHC719qOLMJuhr62gH8v">150</td><td data-page-node-id="UEj8ydRhuDE1c7QFLHkSsE">3000</td><td data-page-node-id="ZBCijBzmLa5A4jKE8cD9Xh">5.16</td><td data-page-node-id="s70CzBEBAAkAvF9YlEl2F8">7.31</td><td data-page-node-id="K5nsDrValwZP5xg0MdEblW">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="UC0qLA8wi6BPlv2ywg6EwD"><td data-page-node-id="A2MP3qYEG5K8cPHGYtkQr0">200</td><td data-page-node-id="lzl9aTAuBxoOJSAkqKSNRL">500</td><td data-page-node-id="ScarTJVxVWS4eplLDiSqT4">1.29</td><td data-page-node-id="mS9rc8WsOgFhQX0ciRCe1d">3.44</td><td data-page-node-id="xHuKZEBRgDPU6hJljGkUHa">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="GzLpHzs8CcNgJCpCBBsvpU"><td data-page-node-id="dJFuu8HtYBoYGtUZvq3rHb">200</td><td data-page-node-id="dGKJwHwlWVYjUmFfaH9FJ2">1000</td><td data-page-node-id="wW6IS3p7DruYa7lhiaXXrg">2.05</td><td data-page-node-id="xpYzm1d63DqWvUE5vMkgJs">4.20</td><td data-page-node-id="dfBIvl6SIb8R3DFvH0ZorX">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="doJPk2H5yScJrG4UrODacl"><td data-page-node-id="L8T1EbAOAYRosBB0DtzdhQ">200</td><td data-page-node-id="cmCjigVFFLiFzB0GDtfOp2">2000</td><td data-page-node-id="D7lsnM6gHAEuVRFUx4CyYY">3.25</td><td data-page-node-id="Cknp6GUYMUukPnfHZElw0X">5.40</td><td data-page-node-id="5vfPBTkKPEPXjGV8UkZ8XK">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="7BkRdqSUKqZBT0HkEwpH5O"><td data-page-node-id="93wlBdlkd5s3uM642of0E1">200</td><td data-page-node-id="Rd81oGCPHjArr2V05htGSk">3000</td><td data-page-node-id="BQMQmGS4EWLY41l27LeMKP">4.26</td><td data-page-node-id="XEDR6VDiSRGkmNFPafBiT2">6.41</td><td data-page-node-id="wujKvqZAmn5oF9uMK2tBcF">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="JgaRFqJtaFAEKzqx7ZvHv9"><td data-page-node-id="PaOaOmAplBhrtxGZ2gfnMA">240</td><td data-page-node-id="46CTOBPsbWMQZY91y7g7hU">500</td><td data-page-node-id="xJ36HbA6xLTMvZLActrHo8">1.14</td><td data-page-node-id="qDFhXbN9cDmgsrJh2LAOiI">3.29</td><td data-page-node-id="dBG3EBLql3CNSUVUiL1sma">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="JlKbnnt8T14mtFqdCn0fk2"><td data-page-node-id="T5NiZUn3joGVI23dqBUZo5">240</td><td data-page-node-id="NovJ86Xd8KwDcHWqDN4dYz">1000</td><td data-page-node-id="PSBmQ1hWn3Nk9ZIkGGWgWu">1.81</td><td data-page-node-id="AeQReKDPbOwbMpSafe1TR8">3.96</td><td data-page-node-id="C7lsQBVOm9J4eIURY39LnZ">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="UTEYbTbVfjtpzhmzrHVzt9"><td data-page-node-id="aZdltWVs5GPDApYXBXMJaD">240</td><td data-page-node-id="rb7XRs27R8h9mEwNSaAX46">2000</td><td data-page-node-id="AkURA2H717mnOyBeQpkFTD">2.88</td><td data-page-node-id="IFfVcIvmrkwKzn7pSzSjDn">5.03</td><td data-page-node-id="6lEanKHjB32GdgmNO23mfD">低：宽度口径未统一的敏感性情景</td></tr><tr data-page-node-id="7IYeowthB7du0lmv9ZcOR9"><td data-page-node-id="AlypScd3gT5HR8jfCtCuYI">240</td><td data-page-node-id="gSSwnCCmKr9k39MdGHcbYx">3000</td><td data-page-node-id="CEUbHYNC6jSbKUactB0Mat">3.77</td><td data-page-node-id="dreBso6Jut8Hy9QakY1eAV">5.92</td><td data-page-node-id="vKALrPVc85uzUkuIScd6Vm">低：宽度口径未统一的敏感性情景</td></tr></tbody></table></div>
+  <p class="cap" style="text-align:left" data-page-node-id="tPqaErDJRv2gA0JDGdcUQe">150–200 m 与 240 m 来自不同资料口径，尚未统一其时期和量测定义，因此这里只展示宽度敏感性，不把任一列称为现场复算。</p>
+  <p data-page-node-id="WVEhpQPQEpHPenx9KUVvww">注意 <b data-page-node-id="NU4VeqzNx7VPaVS1LrlL9a">Q ∝ H^{3/2}</b>：这是泄流量相对堰上水头的非线性关系，不能推出泄流量相对系统总负载超线性。
+  现有分沙比数据还不能证明效率单调增加；Harness 的凸性只能作为待压测假设。</p>
+</div>
+
+<div class="card" data-page-node-id="ogsw8DWV8krJK2krG9Mjmk">
+  <h3 data-page-node-id="ru3VEq26XouX63QUBSabWv">③ 曼宁公式示例（参数命中设计值 480 m³/s，不是独立验证）</h3>
+  <div class="fx" data-page-node-id="7WFpkGpk203LUMMQWe2ZXa"><code data-page-node-id="DDVfFgqvFwqxasnOpc5jNy">v = (1/n)·R_h^(2/3)·S^(1/2)　　Q = v·A　　Fr = v / √(g·h)
+n = 0.030–0.040（岩质/卵石河槽，率定区间），B = 20.4 m（宝瓶口平均口宽）
+  S = 4.1‰（[5] 所载相关河段 3–5‰ 实测范围内的代表性假设，不是同断面率定值）</code></div>
+  <div class="tw" data-page-node-id="oVZRMuXmqWYDuMjJC9LOdO"><table data-page-node-id="QS1mcMMHjhO0DbpTMCPrak"><thead data-page-node-id="8kQiBoZHHYB48078MAYE7n"><tr data-page-node-id="XBFxaiQZzbbBkjdDsBh0hC"><th data-page-node-id="ijEOt6spQotlIfhGdYWGez">比降 S</th><th data-page-node-id="LF4gGQNVVls3TMt5j2SeQu">水深 h (m)</th><th data-page-node-id="d2LwHiRVVBmoMqOFlFAgx1">流速 v (m/s)</th><th data-page-node-id="ip35nsflSUG18iTACRC1pa">流量 Q (m³/s)</th><th data-page-node-id="EW7RALYLaXQgfo7AGJYudH">Froude</th><th data-page-node-id="BKHr7LLPZkd6RzEETCfc2g">校核</th><th data-page-node-id="50zaA4dM36MYxACU5dDkFs">结论强度</th></tr></thead><tbody data-page-node-id="z3X3qu6O4jFixTELYX2nAI"><tr data-page-node-id="ZyOOq5dk0p0PTxsA4BsAeB"><td data-page-node-id="mPKJEZf6U11nEBSzsbQso3">4.1‰</td><td data-page-node-id="qmMFsEWRHSIJFR1QLfTSWj">4.00</td><td data-page-node-id="ITBMlKlZVu3VScb6FLVbrU">3.70</td><td data-page-node-id="XAV62hK6qnXPhgPUz0enpP">302</td><td data-page-node-id="ryZWcBe8oQvDkT2DNy2clH">0.59</td><td data-page-node-id="zFvR9cOpb7huLJxdgzMEYs"></td><td data-page-node-id="D4fBQCEtVZ9mVHlbxrpXG0">低：参数情景，非独立验证</td></tr><tr data-page-node-id="TzxeCMIL14wXuIyKI7xHPX"><td data-page-node-id="kuwz6GAm2uIWo7hoOIP7i5">4.1‰</td><td data-page-node-id="BisFqlOqMlsIhSrDUVAmMI">5.50</td><td data-page-node-id="igWyF2BqVblEdeBgQaFx9Y">4.28</td><td data-page-node-id="f5INFuPinggdGFQ1tNFcLh">480</td><td data-page-node-id="SXQWExU6AzJ0APl3kn6uSE">0.58</td><td data-page-node-id="jApblAA0i0rPLUIyb2Jl1J">✅ 命中设计值 480</td><td data-page-node-id="5VMWc6nWHWqXVcdlEIYJr6">低：参数情景，非独立验证</td></tr><tr data-page-node-id="bQ9XE5Ezy1rQ6rN7FSqBIT"><td data-page-node-id="3gCGs01cphoKHp7wYtRwGu">4.1‰</td><td data-page-node-id="31Db0J4Uyj6AQ4wgqudiGQ">8.00</td><td data-page-node-id="kDRB1jeSio8Dur4Iq9xqEf">4.97</td><td data-page-node-id="uoyBM6XctLPhrPPOGMk0ix">812</td><td data-page-node-id="luRcZDFpjJdJ2jeoN6275g">0.56</td><td data-page-node-id="TgZjmnYFER8JVIkK0FCDNq"></td><td data-page-node-id="9xfilSmDfAGzVEL2CCtu9i">低：参数情景，非独立验证</td></tr><tr data-page-node-id="iLjfsLTnJjRju42DZ2J5qN"><td data-page-node-id="lGd8Ez4D6mk7Qy2TDDMOSX">4.1‰</td><td data-page-node-id="U9yoKr3WfyAIzLKad81v2T">12.00</td><td data-page-node-id="pYvPJgWuHI73qZj76flCqN">5.71</td><td data-page-node-id="odfpYZbHH25BkacFtFDFvR">1398</td><td data-page-node-id="liePP2tl4W5ipFMhRLk2Iy">0.53</td><td data-page-node-id="lGQqD6vJhmVN7gQoOihsit"></td><td data-page-node-id="pkelFOtEU0EeOXNbibXNFS">低：参数情景，非独立验证</td></tr></tbody></table></div>
+  <p data-page-node-id="tEMeYCXsYHeRvvZ3TCB1HV"><b data-page-node-id="nsTz4SWazdYaxSD0Qt29v9">边界说明：</b>取 n=0.035、h≈5.5 m 的示例得到约 480 m³/s，是参数命中，不是独立验证；表中各水深均非实测值，源材料中的 385/700 m³/s 参考流量点未参与率定，平均口宽、矩形断面和代表性也未论证。要称为校核，需补齐同断面的水位、断面和流量资料并给出误差范围。</p>
+</div>
+
+<div class="card" data-page-node-id="FmXKt8vPnFN4oiq9lgLx6v">
+  <h2 data-page-node-id="E8O6v1S9JIOHiSIeHqxlXI">弯道环流横断面：分类是流场的涌现属性</h2>
+  <div class="diagram-frame" data-page-node-id="93CG8732D3jdLSND22YaOH"><svg viewBox="0 0 760 430" role="img" aria-label="弯道横断面及横向水面比降 J⊥：表层低含沙水流向凹岸，底层高含沙水流向凸岸" data-page-node-id="JxAF3kkDjEolwmOVcEElXQ">
+  <defs data-page-node-id="FGAmCw4RW6z2uXHph3vZTg">
+    <linearGradient id="bend-water" x1="0" y1="0" x2="0" y2="1" data-page-node-id="eiB0yBmUgEpXHp40JKFq2v">
+      <stop offset="0%" stop-color="#dbeafe" data-page-node-id="D3oDdLCXuSCye0oJmfTvi5"/><stop offset="68%" stop-color="#60a5fa" data-page-node-id="7Y7JHX7Tm2gquLdJ4OYie9"/><stop offset="100%" stop-color="#3b82f6" data-page-node-id="uqCE9JZiiuipOwoKVGNMCR"/>
+    </linearGradient>
+    <marker id="bend-blue-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" data-page-node-id="7Sg3DjJtGGBjbR1CyBP6Up">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0369a1" data-page-node-id="pUZMo6fxjMdFC4PpWsR5PX"/>
+    </marker>
+    <marker id="bend-amber-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" data-page-node-id="iP8nclpGZO4qHtQvESB7qf">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309" data-page-node-id="UOcCSnhOnA2lx0kE1OxaSy"/>
+    </marker>
+    <marker id="bend-teal-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" data-page-node-id="N6m63uDP0fR70uitfkIq6a">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0f766e" data-page-node-id="XWNSJRcSVk2yMs7OiCgjda"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="758" height="428" rx="12" fill="#f8fafc" stroke="#dbe4ec" stroke-width="2" data-page-node-id="OlbKVCVUeBMAVddho4cGAi"/>
+  <text x="24" y="32" font-size="17" font-weight="700" fill="#16202c" data-page-node-id="PPwE14bFJYfWdGaKCBrD74">弯道环流横断面</text>
+  <text x="24" y="53" font-size="12.5" fill="#64748b" data-page-node-id="zs3Z48Q3Dg7GbQ1mlzqfs1">上层水流向凹岸，下层水流向凸岸；连续流场产生空间分离</text>
+
+  <text x="56" y="92" font-size="14" font-weight="800" fill="#0f766e" data-page-node-id="lF9lKWqH2aYLTsXb3ipjBD">凹岸 · 内江侧</text>
+  <text x="579" y="108" font-size="14" font-weight="800" fill="#92400e" data-page-node-id="ZLTawlWAYXdEDCc9Iyg0rT">凸岸 · 外江侧</text>
+
+  <path d="M112,116 L188,322 L572,322 L648,136 Z" fill="#e2e8f0" stroke="#475569" stroke-width="3" stroke-linejoin="round" data-page-node-id="1pHBm8SU2FYgoGS3W4U5UH"/>
+  <path d="M121,119 L192,309 L568,309 L639,139 Z" fill="url(#bend-water)" data-page-node-id="CRYDc0Z6zCB3fWA3HNkZ5n"/>
+  <path d="M192,266 C286,250 448,250 568,268 L568,309 L192,309 Z" fill="#f2c98b" opacity=".88" data-page-node-id="gejd4jg76glV4C1eu8Xgjn"/>
+  <path d="M121,119 L639,139" stroke="#1d4ed8" stroke-width="3.5" data-page-node-id="mxTi7AHhekdkWjvPLNA46L"/>
+  <path d="M121,139 L639,139" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 5" data-page-node-id="Ll8hbelMp6Q8eWkwBXkFXN"/>
+  <path d="M103,119 L103,139" stroke="#1d4ed8" stroke-width="2" data-page-node-id="FfKKjzi4UKg0kDNGksWf8B"/>
+  <path d="M96,119 L110,119 M96,139 L110,139" stroke="#1d4ed8" stroke-width="2" data-page-node-id="drnipwHx3k7sh4zPea6ALn"/>
+  <text x="49" y="133" font-size="13" font-weight="700" fill="#1d4ed8" data-page-node-id="4duzrtFloixijoEUuLosGa">Δh</text>
+  <text x="270" y="103" font-size="13" font-weight="700" fill="#1d4ed8" data-page-node-id="TiwM7LSKwL3oAINZ7YFg5S">水面横比降 J⊥ = v²/(gR)</text>
+
+  <path d="M548,167 C464,139 281,138 207,168" fill="none" stroke="#0369a1" stroke-width="4" marker-end="url(#bend-blue-arrow)" data-page-node-id="33WutMtslL0eV7yMM4ddz4"/>
+  <path d="M204,178 C178,205 179,243 207,267" fill="none" stroke="#0369a1" stroke-width="3" marker-end="url(#bend-blue-arrow)" opacity=".75" data-page-node-id="eECPTX4feqiTbHkOwf7MPY"/>
+  <path d="M219,280 C305,302 468,301 548,278" fill="none" stroke="#b45309" stroke-width="4" marker-end="url(#bend-amber-arrow)" data-page-node-id="XOim2fG3L8ctWY36xpCwcX"/>
+  <path d="M557,268 C580,237 577,197 551,176" fill="none" stroke="#b45309" stroke-width="3" marker-end="url(#bend-amber-arrow)" opacity=".75" data-page-node-id="yjDrk08X4EDqbAvfZNXMcJ"/>
+
+  <rect x="252" y="190" width="254" height="34" rx="6" fill="#ffffff" stroke="#bae6fd" data-page-node-id="ysdxTnzjppGuHFei79wclt"/>
+  <text x="379" y="212" text-anchor="middle" font-size="14" font-weight="800" fill="#0369a1" data-page-node-id="7MKZZUeH7Yz7NERiPtBBnX">① 表层回流：低含沙 → 凹岸</text>
+  <rect x="252" y="228" width="254" height="34" rx="6" fill="#fff7ed" stroke="#fed7aa" data-page-node-id="ikTCZpndpYOJEiBvI1qmU4"/>
+  <text x="379" y="250" text-anchor="middle" font-size="14" font-weight="800" fill="#92400e" data-page-node-id="rsJwgTOM3aOVALalObeN8X">② 底层回流：高含沙 → 凸岸</text>
+
+  <g fill="#92400e" opacity=".9" data-page-node-id="UnSFpb8NZDhAxsHhesKc85">
+    <circle cx="458" cy="304" r="4" data-page-node-id="Obo1qcX0lnDBqqNsiwxW0g"/><circle cx="477" cy="299" r="5" data-page-node-id="W5wOTESS6syR1baURdxqwp"/><circle cx="496" cy="306" r="3.5" data-page-node-id="nUKsRHh5Pw2VX6HiQWbyYF"/>
+    <circle cx="517" cy="298" r="4.5" data-page-node-id="jjimdCCPq2Y5yDzGPlsj21"/><circle cx="537" cy="304" r="3.5" data-page-node-id="5keMM5oJhXXk4Tw1EmSJG9"/><circle cx="431" cy="300" r="3" data-page-node-id="mQlVn590DOsh7xxMVoNg9V"/>
+  </g>
+
+  <path d="M112,163 L76,163 L76,232" fill="none" stroke="#0f766e" stroke-width="8" stroke-linecap="round" data-page-node-id="ttbbD14o94fNwCkCtDeMck"/>
+  <path d="M76,198 L28,198" fill="none" stroke="#0f766e" stroke-width="3" marker-end="url(#bend-teal-arrow)" data-page-node-id="NwZgH6kqIue49yIipOQyxw"/>
+  <text x="26" y="251" font-size="14" font-weight="800" fill="#0f766e" data-page-node-id="gFvoAvQBFSmzsVCDffEYF0">宝瓶口</text>
+  <text x="26" y="269" font-size="12.5" fill="#64748b" data-page-node-id="tZfstOYRGdtWmcl6zxWJpB">接收表层清水</text>
+
+  <path d="M648,212 L684,212 L684,282" fill="none" stroke="#b45309" stroke-width="8" stroke-linecap="round" data-page-node-id="ljmJn4vNaeSNSZZxBfMEdR"/>
+  <path d="M684,248 L733,248" fill="none" stroke="#b45309" stroke-width="3" marker-end="url(#bend-amber-arrow)" data-page-node-id="Z9QQb9awPIx5RnwBf59cL5"/>
+  <text x="649" y="303" font-size="14" font-weight="800" fill="#92400e" data-page-node-id="LoGVcZxjPYPswKFSX5q0Gf">飞沙堰</text>
+  <text x="626" y="321" font-size="12.5" fill="#64748b" data-page-node-id="QWK25GPbUyv8A9gaLHmqOM">卸载底层泥沙</text>
+
+  <rect x="24" y="356" width="712" height="50" rx="7" fill="#ffffff" stroke="#dbe4ec" data-page-node-id="vzfc5XDUPjxrfsvTetkjtg"/>
+  <text x="42" y="378" font-size="13" font-weight="800" fill="#334155" data-page-node-id="StYhJmllS7QydrXcEHrOcg">观测旁证</text>
+  <text x="130" y="378" font-size="13" fill="#475569" data-page-node-id="KCAHwDVbwBk0RCuavd179D">外江分水 35.8–39.1 %</text>
+  <text x="331" y="378" font-size="13" fill="#475569" data-page-node-id="Hs0aQJXHCytAo5JesdY7hf">分沙 42.3–52.8 %</text>
+  <text x="520" y="378" font-size="13" font-weight="800" fill="#0f766e" data-page-node-id="IJNFx9WAGs8CX48cjKvqnH">κ &gt; 1：选择性富集</text>
+  <text x="42" y="397" font-size="12.5" fill="#64748b" data-page-node-id="PGToNMyEUqVXTNuyh5SMGm">该观测与“凸岸侧带走更多泥沙”一致，但不单独证明软件系统中的分类效果。</text>
+</svg></div>
+  <div class="cap" data-page-node-id="RAyFkAtN8kGX2z7Z7hBhpB">图 2　二次环流把清水送到凹岸（宝瓶口），把浑水推向凸岸（飞沙堰）。分类依靠流场分离，不依赖逐颗筛分。</div>
+</div>
+
+<h2 class="sec" data-page-node-id="gHu9nqlRpmnUXnDI4Hi3eZ">五、六条可执行原则 <span class="principle-tag" data-page-node-id="gV6CDBpqEguhM73n3Xgz2S">正文规范层 <a class="principle-link" href="#core-C1" data-page-node-id="iDsDeNujlQpIpQoqBKN9r8">C1 选择性卸载</a>、<a class="principle-link" href="#core-C2" data-page-node-id="qCkq37ySxApVAhnsGamABk">C2 硬容量边界</a>、<a class="principle-link" href="#core-C3" data-page-node-id="gerSW5vnJOo0P20lsA5P8e">C3 可验证基线</a>、<a class="principle-link" href="#core-C4" data-page-node-id="erFKCi6AeOWs825cCxGavP">C4 场信号与显式授权</a>、<a class="principle-link" href="#core-C5" data-page-node-id="H0T1D1NzcWSMXSafAmnp77">C5 维护制度化</a>、<a class="principle-link" href="#core-C6" data-page-node-id="drJY3jXqfLRFv7h7OQrHia">C6 组合结构与失效隔离</a></span></h2>
+<div class="card" data-page-node-id="4b4dEzQzKbc8AlT6sNmMIS">
+  <div class="note" data-page-node-id="mlmPUpnnHDRMVnwiDzAvpC"><b data-page-node-id="Kf72Aa2XDqrSdZzcrLV51f">正文唯一规范层是六条主原则：</b>C1 选择性卸载、C2 硬容量边界、C3 可验证基线、C4 场信号与显式授权、C5 维护制度化、C6 组合结构与失效隔离。
+  每条主原则在下方单独展开；启发 1–12 只提供证据、类比和方法细节，不另立一套规则。</div>
+
+  <h3 style="margin:16px 0 8px;font-size:15.5px" data-page-node-id="uGSrUa4xIpsVCxFrBrmjcC">主原则总表：同一组名称贯穿全文</h3>
+  <p data-page-node-id="t1SRxB79xjKjpaM0STnibp">章节标题、主原则卡片和附录回链均使用 C1–C6。每条原则给出同一组六项契约字段；项目填写后才构成可执行验收。</p>
+  <div class="tw" data-page-node-id="YVFVUNzpfXj2rEAyusYsuh"><table data-page-node-id="CuQalaDM1AOUOGjp6TGGTG"><thead data-page-node-id="T4sdK3WvlozC0b1IX99QP0"><tr data-page-node-id="62mFWEnkhF3UHHGwwMKd7B"><th data-page-node-id="tDi7TeYsgW4fGgMEfNALej">编号</th><th data-page-node-id="w25VB9taJWo4wDw5AuwItF">主原则</th><th data-page-node-id="g9uD2tYIPbzDsh2ZBARbDP">执行问题</th><th data-page-node-id="AscEiFm6YjfrJwGakzL36f">对应启发 / 验收</th></tr></thead><tbody data-page-node-id="agJT2KL8bXRgmc4pFGQxzc"><tr data-page-node-id="IHxFNOCCzFHC3qTFuOlHBe"><td data-page-node-id="ZN3rOXj827bDB2jqxiZpu6">C1</td><td data-page-node-id="KsJMSNyCU73J8g5PZ0iDyR">选择性卸载</td><td data-page-node-id="GUJwAXHrLVhnUbFR86z3Ye">有害负载是否被优先送入卸载通道？</td><td data-page-node-id="8sjteXsAHTGqEp4jQzKLoD">对应启发 1、3、5；观测与压测共同验证 κ</td></tr><tr data-page-node-id="0szYaHoBVwU8ljjNk9v6CK"><td data-page-node-id="oTBYiq4s6X7fGuXlrgTFWL">C2</td><td data-page-node-id="YNs3BAQHrvUyyfU2gEIjw2">硬容量边界</td><td data-page-node-id="7Jvyrj0IpkgHXLxFXatc99">上限是否写在不可协商的执行面？</td><td data-page-node-id="Y1pF8fYYDrABBObE6fzA8s">对应启发 2、4、8；边界变更需审计</td></tr><tr data-page-node-id="8eRP4ZZNH7YTE7rho7Ikow"><td data-page-node-id="iybEdzBQFv06FDxT52JAFn">C3</td><td data-page-node-id="kzDThCtWKO23e1SuhB9iGX">可验证基线</td><td data-page-node-id="vBaTPcFUMFwh1GpDmXklTO">如何判断当前状态仍可接受？</td><td data-page-node-id="XQEi6vEnJqiOy9JX4wcf8F">对应启发 7、12；重算、测量、留痕</td></tr><tr data-page-node-id="Z0zhQxEZWpZqvDsI7KTBy0"><td data-page-node-id="BkqWLLyHGi0vvH53aGiATa">C4</td><td data-page-node-id="A9C0wdWlR9PWCjyJQya99J">场信号与显式授权</td><td data-page-node-id="4WQkOFzyOPepawK5GKky4O">排序信号是否与能力授权分离？</td><td data-page-node-id="oKcH8U0wGaMIUC0vhIBNoZ">对应启发 6；ρ 不改变 trusted 边界</td></tr><tr data-page-node-id="vSTJ9OcwShGR1g6R80OUiF"><td data-page-node-id="NudPKzfrHTdz5lQvJUC1e3">C5</td><td data-page-node-id="fKisJFjr1PE1326hE1uHI3">维护制度化</td><td data-page-node-id="U1C9MyW1MQBNG6ruvh7ft4">漂移和欠账是否有责任人和期限？</td><td data-page-node-id="g6a114TqmEdggSUvHTjfGA">对应启发 9；维护是运行功能</td></tr><tr data-page-node-id="9tvgzu1iZ5IyyHIZt3yCPi"><td data-page-node-id="8CbDkIm4RKLXQGu8J33dFA">C6</td><td data-page-node-id="ZG3TBf3Cm5BxY0GPY9bMzp">组合结构与失效隔离</td><td data-page-node-id="END5Ds4RnQD3gnz6JSaKwu">中央控制的收益是否值得单点代价？</td><td data-page-node-id="irMwXrmzk214woxEgyJzld">对应启发 10、11；下线演练与参数扰动</td></tr></tbody></table></div>
+
+  <h3 style="margin:18px 0 8px;font-size:15.5px" data-page-node-id="oGPFe2soWPSnQ2aCDguPFR">章节—主原则索引</h3>
+  <p data-page-node-id="xpxBHQLRNIjEeBZ5zDHqNg">读者可从任一章节回到主原则卡片；附录只承载启发和方法细节，不改变章节的规范归属。</p>
+  <div class="tw" data-page-node-id="HUdvjHCt2QwdR56jCFVYDY"><table data-page-node-id="NGpIwZ3QXtxWCUJ3J7m5Dx"><thead data-page-node-id="DGgqJw3Wilm6DTrN2xjwaz"><tr data-page-node-id="WVFbScFgdXb1CJAlGsK6xK"><th data-page-node-id="my2GUf38hICUHmQKYNNV9P">章节</th><th data-page-node-id="8nRIsLAM0z6erXvE5QIKEI">内容</th><th data-page-node-id="JCE3GJpWGHuHiiXc9JivA2">对应主原则</th><th data-page-node-id="Wk0gO9MBUAuPnWsKeXFlcj">本节承担的论证</th></tr></thead><tbody data-page-node-id="agvfyMBR0vFFVsKkEEHPrv"><tr data-page-node-id="S5crn2fqnApXECmoKYEDg4"><td data-page-node-id="GLSAwOezQ8NRsMmg2je7zT">导言</td><td data-page-node-id="jIVWEwEUquptTjX0bE4wqb">概念对照与适用边界</td><td data-page-node-id="tdq7SSQgM6wpH8i1f6kSSh">C1–C6</td><td data-page-node-id="928TbB8FzEYoPnP2MPjK0P">定义共同语言、边界和总体入口</td></tr><tr data-page-node-id="HpYaE109WWUEE1YGNKfAOT"><td data-page-node-id="Jnjt8JBPUR3ZlBisPyiEpG">〇</td><td data-page-node-id="WYmqFKwWGBkG7DZkyd46vt">一页纸总览</td><td data-page-node-id="HwTcpMoBXDg9Li5W6lbSGy">C1–C6</td><td data-page-node-id="3DKFVF2BppW6DCTGqendLS">给出共同问题、边界和验证入口</td></tr><tr data-page-node-id="ebCn0ZjELJcPnfvMiRxW1Z"><td data-page-node-id="19xBZfgrDiqO7BtD5G7NtU">一</td><td data-page-node-id="GAA8E4G9L8qsWJNYGtSrOA">工程解剖</td><td data-page-node-id="BndPlDnUsH7T25VIv9Cp2v">C2、C6</td><td data-page-node-id="SDCjfELffR1H68ZRM0HVU6">几何边界与组合结构</td></tr><tr data-page-node-id="LZA1K3WGrMu7WClJAGenEx"><td data-page-node-id="s4sk1S8yY7Q7NHa4i0gqoO">二</td><td data-page-node-id="Cr5nIEz9RVXscelhHnGlCv">水文与泥沙</td><td data-page-node-id="0PyJiJMg6p3Tp3DfThIs09">C1、C2</td><td data-page-node-id="IAB44XvDCE2svN33xbfxqp">输入分布、容量边界与卸载</td></tr><tr data-page-node-id="E8w8niAWFicLSqnHomQ1Lp"><td data-page-node-id="c7sIhV9IXlKnkgQJn1Oixe">三</td><td data-page-node-id="f50qROxKZ6uh9GHJlTSVg0">实测验证</td><td data-page-node-id="WWgEnrtCOLrzBIxtAWW1Lt">C1</td><td data-page-node-id="jcVNA1DzYPUWbcbdR0koG0">分流、分沙与选择性卸载系数 κ</td></tr><tr data-page-node-id="MaIDCMPNH8n6I7MUBatohK"><td data-page-node-id="lJFHxyiz6GjOYm1eyDeAvZ">四</td><td data-page-node-id="km8OA3jDhFoOED6dyQT8Rd">公式与实算验证</td><td data-page-node-id="DsEQKASlI4U9a1lfGpUXq4">C1、C2、C3、C4</td><td data-page-node-id="PXs8OqkZGTTYH2woRkt0wP">机制、边界、信号和可重算证据</td></tr><tr data-page-node-id="ADtqga4rClozSJQ0GOxSF6"><td data-page-node-id="oSeR7Cm3zzAfV7Q0BzCa2J">五</td><td data-page-node-id="AMXHV2LfI0B6dXLcZkhxTT">六条可执行原则</td><td data-page-node-id="DCb1KI4qBTku8TejW32DHG">C1–C6</td><td data-page-node-id="EzHsvUlbDnEC3MzO478A2C">唯一规范层与六项验收契约</td></tr><tr data-page-node-id="nP8V1ebXyW8Njzy0IqjC4k"><td data-page-node-id="3wnNLK6PrBS6e0XQbnp6LP">六</td><td data-page-node-id="IeoqGojtKRGbs3fqSGGTkY">场的落地设计</td><td data-page-node-id="1z0scPTNHWM1PfT16jBV6G">C1–C6</td><td data-page-node-id="fDsBBV9FEZEApbuKURYzuG">卸载质量、容量、基线、排序授权、维护与失效隔离</td></tr><tr data-page-node-id="3Ur2pvIumHx9DBX7PEgwoQ"><td data-page-node-id="yCKzxKBGgLuYiGTHR8AGDM">七</td><td data-page-node-id="sNJDSp0SeKD9ybNLcQEa3a">反例、代价与边界</td><td data-page-node-id="LZFLyWhAOwjCln1kVruGws">C1、C2、C3、C5、C6</td><td data-page-node-id="GGdmAmlZxcdKquUFXhhBcE">饱和、维护、中央控制和失效隔离</td></tr><tr data-page-node-id="ZoD4puTeIdS2KIeDrX26Ur"><td data-page-node-id="5iFOtnWJhRbk5SCn6f8dhl">八</td><td data-page-node-id="TnXRjivDeGe5Teq4NNWpwM">论文与权威资料</td><td data-page-node-id="bQ2dETwOO2T9aeU1hGApcX">C3</td><td data-page-node-id="zapu2YTvW65cg4YsbSEKNH">来源、页码和结论强度审计</td></tr><tr data-page-node-id="PLgCLOKwnYpfPogeG1Hwhu"><td data-page-node-id="QlVL52qJgwuE809H8qYhhd">九</td><td data-page-node-id="gmlVf5VzBCPKHEj6HNuqw7">一句话总结</td><td data-page-node-id="kGTFfxcAXw47limb6vqJh3">C1–C6</td><td data-page-node-id="D9mg8mFqBhVocfjnENro5e">回收六条主原则</td></tr></tbody></table></div>
+
+  <h3 style="margin:18px 0 8px;font-size:15.5px" data-page-node-id="uYlY4tyCBGhy6DGxJcGTst">术语定义（本报告用法，与都江堰构件一一对应）</h3>
+  <div class="tw" data-page-node-id="6buIvQ7UNwrnN48qLOYaIt"><table data-page-node-id="zi91vJlaKM8bSGHWWDNMpN"><thead data-page-node-id="pbr9de7zNTOw7hGomn2Mi8"><tr data-page-node-id="OckDqtG7GcbUkSUxvmpfyn"><th data-page-node-id="ZKOd62CeYHFZletv5LQccC">术语</th><th data-page-node-id="xeofgzhSWuD3te9PhoqoaI">定义（Harness 侧）</th><th data-page-node-id="pj39UB7oxLg2eU7potdm5M">都江堰对应物</th></tr></thead><tbody data-page-node-id="rRuxJsTa0LNGBeF8QiNXEn"><tr data-page-node-id="V26YG5M1RmdVB6C6aoSke0"><td data-page-node-id="V8tmMfMtftjv5HP3fxruVB">κ（富集系数）</td><td data-page-node-id="SApzuMp2nktmZDlNdpUSWv">卸载通道移除的有害负载占比 ÷ 同一通道移除的总流量占比。κ>1 表示富集；跨年份端点不得直接当作统计区间</td><td data-page-node-id="E3lqxs1m3ESxiUCsYZMRxR">分沙比 / 分流比（保守端点约 1.08–1.47；其他值为单独派生示例）</td></tr><tr data-page-node-id="OCTB2rhwZ809QrFCUo09kC"><td data-page-node-id="GxImclrJ8E3fGL0CE0os6B">卸载通道</td><td data-page-node-id="dFMTWCV9gfLSkNTp2dorXF">把负载引出主链路的旁路：retry 队列、dead-letter、日志归档、上下文压缩、降级小模型、人工接管队列</td><td data-page-node-id="LfBeHLzOvbdIVrRSOgOdjG">飞沙堰、外江</td></tr><tr data-page-node-id="nUHWwOFw4OLHom6CRTqqLz"><td data-page-node-id="ZCTWBomoFBTXAZxrrV1eA9">场（field）</td><td data-page-node-id="sPktSF6hRHu3Q9T544gUTU">由成本函数、拓扑结构和梯度信号构成的排序环境；软件分类仍需阈值、路由和拒绝规则</td><td data-page-node-id="94XOPWsQEFJfaA0h2ggIPX">弯道离心力场 J⊥ = v²/(gR)</td></tr><tr data-page-node-id="Qh2xdyzRuBTjfboFZ44xx0"><td data-page-node-id="M3ru26kGYJfGVV17ilUVt0">窄口</td><td data-page-node-id="nVWnropFWWzjMA4NtNPvgV">主链路上不可协商的通过率上限，把「上游来多少」转换为「下游最多吃多少」</td><td data-page-node-id="hUAdcqKkB8yJty5ZozBOMO">宝瓶口（宽 20.4 m）</td></tr><tr data-page-node-id="BrTtB9URM9lBkAel3JA017"><td data-page-node-id="trTP7Ioxg3Rf3mTf92LA2R">逃生堰</td><td data-page-node-id="plT9SHpJqPjbjzWAHmCl17">系统过载时的卸载出口，其阈值就是它的堰顶高程（通道是路径、堰是设定阈值的结构，二者不混用）</td><td data-page-node-id="bKbLVyF2psuDHZrVGoexKF">飞沙堰（堰顶 728.25 m）</td></tr><tr data-page-node-id="lQlx5TXEHbWCvAGArYBOpg"><td data-page-node-id="w4o162LM9YeAYoare1UXKV">基线</td><td data-page-node-id="SaOJibDb58ArRx4k9KqlMe">判定「当前状态正确」的可验证事实（事件、校验和、实测快照），不是文档里的承诺</td><td data-page-node-id="EwCBLBT5H8mIkXIUQPAFvs">卧铁（埋于河床下 1.8 m，挖到可见才算达标）</td></tr><tr data-page-node-id="OlQU73GiXTY12gt2L8zswy"><td data-page-node-id="Kl161J4GJLQGdYXOOPCC19">Hook</td><td data-page-node-id="3PBmAARAAWKsug6WrdFXjL">在 agent 运行时之外、由系统强制执行的检查点，其阈值不可被 Prompt 覆盖或运行时协商</td><td data-page-node-id="FCbNJr8CuxXl3AG9TG7DCH">堰顶高程（物理常量，水过不去时无法「说服」它降低）</td></tr><tr data-page-node-id="WBnehF64cuHGmFa5SFnjAp"><td data-page-node-id="VWtzI0uW8fXTIUvEYUJsoD">Obligation</td><td data-page-node-id="LwnnaEdGvjnboFbzwAAWjq">必须显式完成并留痕的义务动作，未完成时按登记策略阻塞或降级</td><td data-page-node-id="uCYzwFJ7t15Gb2FBkHB9E6">岁修（长期制度，也曾因战乱中断）</td></tr><tr data-page-node-id="b0usOa03dSyHiBHwrket0x"><td data-page-node-id="6UHBkgKtLBGHEymHg30GKm">Projection</td><td data-page-node-id="xOsHzb3wluoFxmArn4eMcb">从事件流重建出的视图，用来替代「保留历史全量原文」</td><td data-page-node-id="aeL2DbxX5DtG5mSqbFgd44">水则读数（用标尺替代逐粒数沙）</td></tr></tbody></table></div>
+</div>
+<p style="color:var(--muted);font-size:13.5px" data-page-node-id="sHHXFrX1829CxXH4WrvT2u">以下六条原则是唯一规范层，统一按「规范 → 执行问题 → 六项验收契约」组织。论证资料与公式集中放在文末附录。</p>
+
+<section class="card core-principle" id="core-C1" data-page-node-id="64F3d7U3fnvjDkZ7yyBhtv">
+  <div class="ph" data-page-node-id="tAO6aLBGIKjpZ23nXB1Yyc">
+    <div class="pn" data-page-node-id="bbC0epMuwTQVrbtsdYFos8">C1</div>
+    <div data-page-node-id="xne7TcC3yYDeGL8iODBMUy">
+      <h3 data-page-node-id="AWtwy6C2bb5PUSSFZ5JkNK">选择性卸载</h3>
+      <div class="alias" data-page-node-id="g1yFETVOo4xSmUmbdDvqMk">让卸载通道优先带走有害负载</div>
+    </div>
+  </div>
+  <p data-page-node-id="vgVgEAvtxN7Qxhi0EqU6jv"><b data-page-node-id="uPCQU7aaBwxCEdCQaGD5He">规范：</b>对承担分类卸载职责的通道，先定义“有害负载”，再验证卸载是否形成富集，以及在何处饱和。</p>
+  <p class="core-question" data-page-node-id="7wV5G6lDL1O4fTjoSDwnqk"><b data-page-node-id="yPMKCoRa18Z8vDA4xyRpyg">执行问题：</b>负载增加时，系统是否把更多有害物送入卸载通道，而不是按比例稀释？</p>
+  <div class="tw" data-page-node-id="eJDJdC30LvmfU3olI7GIGv"><table data-page-node-id="1QqgroEF9GtUt1nGrzmsFJ"><thead data-page-node-id="FCDVDb7O6n2PyvhAYHZlsC"><tr data-page-node-id="Ia88EE5Prz3bVK72WX9q3x"><th data-page-node-id="1zoXKUKEoA9GrZzjcThy00">契约项</th><th data-page-node-id="oJIMFw8KHEjomtDqxGsCu1">项目必须填写并执行的内容</th></tr></thead><tbody data-page-node-id="eU9Znxoagp50zKVHogTOp2"><tr data-page-node-id="TTaZrpdq9eNd9nwxGLf5q0"><td data-page-node-id="g4GyHs5UGkRQVzoQhQi2Dr">责任人</td><td data-page-node-id="U3BybqkGmq4dCG9rABB2Y0">卸载通道负责人；有害物标签由业务或安全负责人共同确认。</td></tr><tr data-page-node-id="Yc1Ca7fFJpMGLzZ4rPlaCg"><td data-page-node-id="dHuBFydq8GRRlDCBAMlMxA">触发条件</td><td data-page-node-id="FPUPixgEfi4Jevjwp0UHPj">新建或修改卸载通道、标签口径或负载分布时；发布前重跑。</td></tr><tr data-page-node-id="j2yStUUdXbNbBmAPNmsq0E"><td data-page-node-id="FSzd6FcteVqr0SIBwO7LCN">测量口径</td><td data-page-node-id="yQiCAYHC87ih0op5vkWfFc">在同一标注样本和时间窗内记录总输入、总卸载量与有害物卸载量；分母为 0 时记为不可判定。</td></tr><tr data-page-node-id="z48NPdM9HfOGybQGFMWFAW"><td data-page-node-id="ts8aq5G02O2RxGzq7BEePl">通过条件</td><td data-page-node-id="SBCn3DKI2KR9tdcEG3Omzk">项目预先登记 κ 下限、置信要求和饱和边界；压测满足登记值且原始计数完整。</td></tr><tr data-page-node-id="ahBXcwOdYFJHUbOACeh2U0"><td data-page-node-id="QAVCw0JDvypoM8rl10vfQq">证据产物</td><td data-page-node-id="gcevnn8xcdf7AB9Q8SErTo">标签说明、样本版本、原始计数、负载—卸载曲线和计算脚本。</td></tr><tr data-page-node-id="Og8z6f0eRif1FBFuHkXmpL"><td data-page-node-id="RNQKkcsZrpYD9SOhG3iSp2">失败处理</td><td data-page-node-id="vfEOXt0IE6NPmM5gDL60tq">阻断发布或回退策略；无法判定时转人工审查，不得按通过处理。</td></tr></tbody></table></div>
+  <div class="ref" data-page-node-id="th7jDp8Rfqr8sbbX5qXdSE">论证与公式见附录：<a href="#inspiration-1" data-page-node-id="prI4ZiU1Y3J7uCDNlP1qZ6">启发 1</a>、<a href="#inspiration-3" data-page-node-id="hxmGYIdXuUmwUjNZVthzcF">启发 3</a>、<a href="#inspiration-5" data-page-node-id="IMUknqMsuHKWekdGrfQUi7">启发 5</a></div>
+</section>
+<section class="card core-principle" id="core-C2" data-page-node-id="bmIxFIMvK0sGQwXsPQzORu">
+  <div class="ph" data-page-node-id="Gq3EfAT9Z9QYFYWSV93PXy">
+    <div class="pn" data-page-node-id="Q2rIDILHIpnk6JCxWnv5DY">C2</div>
+    <div data-page-node-id="lmzP2yR4hZS3mABs2Sqkqq">
+      <h3 data-page-node-id="o2Z96CHujcjFrizGUEMIha">硬容量边界</h3>
+      <div class="alias" data-page-node-id="DQgHTv5aKuKzsT1IwEtHZk">用窄口和低阈值把上限写进执行面</div>
+    </div>
+  </div>
+  <p data-page-node-id="cHLHJqYCl3DchzWO8bPkZJ"><b data-page-node-id="jWU1rG07DtORi8tnumDRPJ">规范：</b>容量、权限与熔断上限应由执行面强制实施，运行时请求不能自行放宽。</p>
+  <p class="core-question" data-page-node-id="dPZaqJt1CDZ1BF3eb8ysh3"><b data-page-node-id="60CD8x1nMdPDoi4LeBIzPY">执行问题：</b>模型、任务或流量越过容量边界时，是否能在不可协商的位置被限流、卸载或拒绝？</p>
+  <div class="tw" data-page-node-id="drE5CrBZLyIuEyAwhdCO6x"><table data-page-node-id="bhEUNsQ0ulPrgmXZyG1ZHx"><thead data-page-node-id="kOvA72YzoYn3XuZDoqGYS3"><tr data-page-node-id="bbB6Ua7swX2s13viLNnnBh"><th data-page-node-id="6FOYsTlwvnKpmna2oGKY3V">契约项</th><th data-page-node-id="09HEFFGxj74qqGyTyiGsz8">项目必须填写并执行的内容</th></tr></thead><tbody data-page-node-id="ys8TEb92RbjQeux8BIdSDD"><tr data-page-node-id="GoKOD8Oe6xT5XLCSJNq23r"><td data-page-node-id="9r2Hv7khmi6gXoPUl2yB7H">责任人</td><td data-page-node-id="adRUD9VDATffHXx7Xo1xIh">平台负责人和安全负责人。</td></tr><tr data-page-node-id="mBVFhEPLI8MB2o0xwdeTzr"><td data-page-node-id="BSXc5Mb7K63MmHIPspJely">触发条件</td><td data-page-node-id="pRjnDZLwH8BEbACc9E6yQs">每次部署、边界配置变更以及新增绕行路径时。</td></tr><tr data-page-node-id="9B399W99RFv29CinoyQLzb"><td data-page-node-id="1iReloGluPmTP8aXk5vpJC">测量口径</td><td data-page-node-id="OGRWGDWKDrWccX1ngj5I7d">测试上限内、临界点和越界请求，并覆盖 Prompt、工具调用和降级路径。</td></tr><tr data-page-node-id="iypIL948pHIrxITuOPYqDI"><td data-page-node-id="rfNwQ6gOXfnq4nCbcqwCZb">通过条件</td><td data-page-node-id="oNlEbFv51qON2bG9DPabZN">所有越界请求均被限流、卸载或拒绝；例外有审批、期限和可验证回滚。</td></tr><tr data-page-node-id="KkDOp3gcIBzA0QoAx8vaeq"><td data-page-node-id="k7wAXjtU4iXcqn7EXacAk7">证据产物</td><td data-page-node-id="zPuScBRIBmj9TQYiw8iD9v">锁定配置哈希、边界测试结果、例外审批记录和回滚演练日志。</td></tr><tr data-page-node-id="klochbPrKRZqGPxPIGi2w8"><td data-page-node-id="j1NsmshgcOAFMYh640mBpI">失败处理</td><td data-page-node-id="oSww8HNq82G24rs85xydV2">阻断部署并恢复上一版本边界；未知路径默认拒绝。</td></tr></tbody></table></div>
+  <div class="ref" data-page-node-id="fo8aRO5daimEBwrSIuyLME">论证与公式见附录：<a href="#inspiration-2" data-page-node-id="m4HNguyjqUHDbBDjskm6v9">启发 2</a>、<a href="#inspiration-4" data-page-node-id="SR5sCX6B5Giyye0VVDOSAH">启发 4</a>、<a href="#inspiration-8" data-page-node-id="OWJ2BL5ximdZkdnFAcEldK">启发 8</a></div>
+</section>
+<section class="card core-principle" id="core-C3" data-page-node-id="XOjWVwBEP2yrnFBPXqIvlh">
+  <div class="ph" data-page-node-id="ADv8pN4fDxENHsTYxaxwOz">
+    <div class="pn" data-page-node-id="2fqiUFNr7xDBmpMO8k1yy5">C3</div>
+    <div data-page-node-id="h4YcufymLFQahrTgBAxcYx">
+      <h3 data-page-node-id="mIfWUoJRAGEow3HIL1wnDi">可验证基线</h3>
+      <div class="alias" data-page-node-id="i2ndTBTFJNrL5lAozIqe5A">标准必须能被重算、测量和追责</div>
+    </div>
+  </div>
+  <p data-page-node-id="ARQmXz7nOwj1t3gPXwopaL"><b data-page-node-id="arLeVBUVYOlRtF4e46YTXw">规范：</b>关键状态必须能从受控证据重算或测量，不能只由运行组件自行声明。</p>
+  <p class="core-question" data-page-node-id="OtFVhTlrwBjI3giTycs4fh"><b data-page-node-id="IfJ6s43ETMBD7WJqKffPol">执行问题：</b>如何判断当前状态仍可接受，而不是只复述一份声明？</p>
+  <div class="tw" data-page-node-id="d9lXDdb4nVkxrU4NJXnuJa"><table data-page-node-id="0jpGZBEMusXAG9ZrNaPnQT"><thead data-page-node-id="UapxNd8HywiFAlIP96bbzY"><tr data-page-node-id="Wf7ZvAMT4yz9u8kMFHXp1l"><th data-page-node-id="WCwkrk7WGYc5a2NnHOYPjS">契约项</th><th data-page-node-id="6DpvW0Isv0Uqa9EGSbDtH2">项目必须填写并执行的内容</th></tr></thead><tbody data-page-node-id="5E6qPw9eGax77MszMx2IZo"><tr data-page-node-id="lqvE8VFjHJnCFiaPoL0f7d"><td data-page-node-id="ClSUDeWI5DojwIDDS6VqqV">责任人</td><td data-page-node-id="hr2tQfB2Gb1QrnHpTEvxvY">状态所有者和发布负责人。</td></tr><tr data-page-node-id="CyMA6TdORzKJhOXxFF9xai"><td data-page-node-id="En7TiO3PeV1bqfCjzhOeLp">触发条件</td><td data-page-node-id="q2YFyY6QZ68TQKAOTsykao">构建、发布、维护完成后，以及登记的周期性复核时间。</td></tr><tr data-page-node-id="YsTZTbPycVnOQLe3uDzOyY"><td data-page-node-id="CtbqmZxwCGNFJtSGngNqew">测量口径</td><td data-page-node-id="f4GB3f2QaYLJ3GpYIqoXGz">按登记算法从原始证据重算基线，比较值、版本、完整性和证据时效。</td></tr><tr data-page-node-id="zHKUri8mWHzlTwTFPSTyNS"><td data-page-node-id="FjU1kqomPN0zFjYspVnZpq">通过条件</td><td data-page-node-id="B4FrUPw4dgmVTClz6lDfdR">重算结果与登记基线一致，证据无缺失、未过期；容许差异须有明确范围。</td></tr><tr data-page-node-id="cCIfo18tzu1pOH9tHeXLbh"><td data-page-node-id="Mcs9tp4zaH2YAH7uOKmCva">证据产物</td><td data-page-node-id="5DAwTgmnmDvfYQidf5m26b">基线版本、输入清单、重算日志、校验和与验收事件。</td></tr><tr data-page-node-id="EkFvj4aL2jExgsBvCWcdcx"><td data-page-node-id="9aixuNPFBjHuHS51u321wJ">失败处理</td><td data-page-node-id="DOdkaj7pbRKh5sEf5dUID9">阻塞依赖该状态的动作；重建或回滚后重新验收。</td></tr></tbody></table></div>
+  <div class="ref" data-page-node-id="0rc2NqAwRJUOCMDsHGAEkU">论证与公式见附录：<a href="#inspiration-7" data-page-node-id="LRQ1MHJMgC8X9CVlhC9Rvi">启发 7</a>、<a href="#inspiration-12" data-page-node-id="LTZeFYzroPOZqolN3F6Z9s">启发 12</a></div>
+</section>
+<section class="card core-principle" id="core-C4" data-page-node-id="6nyCxB1wcXktZEXlAaTBSV">
+  <div class="ph" data-page-node-id="zCpPC704x7ewGjoVNh6CE0">
+    <div class="pn" data-page-node-id="JVkbhIuC8EFMcW5YauXoPn">C4</div>
+    <div data-page-node-id="SyYobolEZbMtJrV8a0zCEW">
+      <h3 data-page-node-id="cYqqSrr8NzcyUHjZKfxcw9">场信号与显式授权</h3>
+      <div class="alias" data-page-node-id="FtHxbSB7TUYoA8cND6elVG">用结构信号排序，但不让信号授予能力</div>
+    </div>
+  </div>
+  <p data-page-node-id="WNIZK1or4qhy6G0e9KeTZp"><b data-page-node-id="YkFroc75pD4p2U4sirEcNS">规范：</b>连续信号只辅助排序、抽样和审查；能力边界始终由显式策略决定。</p>
+  <p class="core-question" data-page-node-id="BeOOK4x60k0tXhG7eEkvrI"><b data-page-node-id="N2bNgVglGtz1SGuqltB4b2">执行问题：</b>连续信号能否减少重复判定，同时保留权限边界、冲突仲裁和拒绝路径？</p>
+  <div class="tw" data-page-node-id="CbpRdSzfsCnmBYDkk981BJ"><table data-page-node-id="Ni4aeRqxCMsNNOs2YfEu1Z"><thead data-page-node-id="inmRLq0YTw8Qu4FwSyY8rI"><tr data-page-node-id="Z3d5ulOvFOpPiHBZJ15jCx"><th data-page-node-id="vPTqAwBx9LdE1wDlmgYXLA">契约项</th><th data-page-node-id="mSREZNdKY018RjBjQ6vSbh">项目必须填写并执行的内容</th></tr></thead><tbody data-page-node-id="TcB7RBtPNA1d2MnJMo8kuB"><tr data-page-node-id="fqG0w9fUybl8s1PtCcWtPn"><td data-page-node-id="H9tJvX2ZAbXebKDBsnNsTw">责任人</td><td data-page-node-id="AzmayMqWSa0dBjnO7yQ1P3">安全负责人和工具注册表负责人。</td></tr><tr data-page-node-id="G0d6GHsvDFlckubdNXLNL4"><td data-page-node-id="kBtcN5PXvZtKx4PmokR0Ux">触发条件</td><td data-page-node-id="9tfjmkiPKmGwBpsakgH0ek">新增工具、模块、路由、权重或阈值时。</td></tr><tr data-page-node-id="MRy29hCm0ZZl6IgxketfUj"><td data-page-node-id="obxJPG9jHZFX25ILQvLDUf">测量口径</td><td data-page-node-id="zAAwpTw3Kv3M63OD0nWUny">对全部 N 个候选计算信号，并独立记录显式授权结果、触达面和人工复核。</td></tr><tr data-page-node-id="x0P6G6jfje6VQG7zan78vB"><td data-page-node-id="biAEI3GwnJgd0TyLERyS98">通过条件</td><td data-page-node-id="5GByGMiMyGwt8ocpKc9PF4">ρ 不直接改变授权；trusted 项均有白名单和能力策略，未知或跨边界请求均拒绝。</td></tr><tr data-page-node-id="wlHHSWpaMoHXhYk8C5MwYq"><td data-page-node-id="W0PmVQCpU262KrhpGGaBsF">证据产物</td><td data-page-node-id="ilMENWebckWkd15WsBBpGS">信号快照、策略版本、授权决策轨迹和人工复核记录。</td></tr><tr data-page-node-id="FIsBDGgWKVJegpUwzvDCGi"><td data-page-node-id="uSW3xaTOKjoRpGgqH3hYXb">失败处理</td><td data-page-node-id="ZlRy0pPYtDB3QJ9lA9QiWg">拒绝或隔离请求，回滚路由或评分变更；不得自动降级为放行。</td></tr></tbody></table></div>
+  <div class="ref" data-page-node-id="mB97ls4jCGTKga1NsQx3Lk">论证与公式见附录：<a href="#inspiration-6" data-page-node-id="XBUJeflbyFlsBxZQzgO9iY">启发 6</a></div>
+</section>
+<section class="card core-principle" id="core-C5" data-page-node-id="dWiclKJrIWVzaHsS2B6uF3">
+  <div class="ph" data-page-node-id="AFjSJtDLrFHV8wWJhV6pfA">
+    <div class="pn" data-page-node-id="9XSpgXDfESPFkLyZmogPBb">C5</div>
+    <div data-page-node-id="fF42FhXnnzLSPEifC5xa5F">
+      <h3 data-page-node-id="u7lvEH9DT37w1F9L8GEnV9">维护制度化</h3>
+      <div class="alias" data-page-node-id="spKRFi7JjZ0e6pIJnuhQCK">把维护、对账和重建当作运行功能</div>
+    </div>
+  </div>
+  <p data-page-node-id="hflHS7RrQLAEEGH8229FCS"><b data-page-node-id="GKuzSSfHnm4Q8wdrWEHLJ2">规范：</b>维护任务必须有负责人、触发条件和期限，其完成状态属于运行状态。</p>
+  <p class="core-question" data-page-node-id="xm1EWGX9jf9bno3AeJuQ8C"><b data-page-node-id="OcFAqlwkmicfVClb8FGEAl">执行问题：</b>系统经过规模、人员或环境变化后，谁负责把它带回可验证状态？</p>
+  <div class="tw" data-page-node-id="SO86cdMKE1POTzHdwJCcRt"><table data-page-node-id="OHaf0B901BDo6DGvdgx8mI"><thead data-page-node-id="n8zBK7jIoJqeHoBhDG3Eya"><tr data-page-node-id="rsMwXdpVTEDlPll5fFyQZr"><th data-page-node-id="EeqQlDgGLj5U8KWENDcsBK">契约项</th><th data-page-node-id="pKvJqAAY06B99OHVOR8cEZ">项目必须填写并执行的内容</th></tr></thead><tbody data-page-node-id="fYdlf8YK2tbJgRtBQmxzHg"><tr data-page-node-id="5krF6IWsGAGwwossVEJ2ts"><td data-page-node-id="YwQnhEFRqLOiMovfpRCKt3">责任人</td><td data-page-node-id="5sRdiUsotWFK502XFkIQAM">每项 obligation 指定唯一责任角色，并登记升级联系人。</td></tr><tr data-page-node-id="0dOwBNMxaLzD0sEMEPXEHx"><td data-page-node-id="GdBntIpu8sqG50tIKeJrH5">触发条件</td><td data-page-node-id="vcS9tcIQCJoagCYRx3csQR">按项目周期、漂移阈值、故障恢复或依赖升级触发。</td></tr><tr data-page-node-id="iIqDLqaUbxr42eMJZuJnfm"><td data-page-node-id="XzzH8oxZZqb33vWFa01ogo">测量口径</td><td data-page-node-id="yga8fFPwtWwoiWpOiKMeV8">记录开始、截止、完成时间，对账差异、重建结果和影响范围。</td></tr><tr data-page-node-id="3Wb9OGUoP0QxWzMwJaMyHs"><td data-page-node-id="PBZoHpUcG3w9gBGd0pvXoq">通过条件</td><td data-page-node-id="Hed8hyFc1iYyTMVMbFVYuj">关键维护无逾期，差异在登记容许范围内，恢复检查通过。</td></tr><tr data-page-node-id="4jc0MGHafTwsy3GAToEKxW"><td data-page-node-id="qXSAqtylbqWIoPUkOUWbPg">证据产物</td><td data-page-node-id="e6rrXXv22SiFEEhZdcCBrw">obligation 事件、责任人、期限、执行日志和复核结果。</td></tr><tr data-page-node-id="JYrqSi9au3ES3ZdX5XJJL0"><td data-page-node-id="wPDGmTRQCNY624RJcw9wk3">失败处理</td><td data-page-node-id="e6pj8BQTDa1HwdcMMtfes4">升级告警并阻塞受影响发布；必要时切换降级模式或重建。</td></tr></tbody></table></div>
+  <div class="ref" data-page-node-id="VuoRIBtJKEGgtJhEQ5JW7g">论证与公式见附录：<a href="#inspiration-9" data-page-node-id="7EM8Qy1fWo7ssrmoVcAKOX">启发 9</a></div>
+</section>
+<section class="card core-principle" id="core-C6" data-page-node-id="JgARXw0qHHGKg07tWS9NyL">
+  <div class="ph" data-page-node-id="1LOTmt0G0ZY94eHstRLpmM">
+    <div class="pn" data-page-node-id="L4khQqClNgMWcuWhTsTaBq">C6</div>
+    <div data-page-node-id="plA43lwYy2COF9UF3SulgH">
+      <h3 data-page-node-id="UendYHkSVg6E9ZlmSuDMZD">组合结构与失效隔离</h3>
+      <div class="alias" data-page-node-id="PYxxwHBommQ24k3oDFn7g5">用可替换通道降低单点控制的爆炸半径</div>
+    </div>
+  </div>
+  <p data-page-node-id="gsZPLuaC9PjTv9foMK2NHT"><b data-page-node-id="YiN3uReQ04GmtgFm9akvM2">规范：</b>中央控制点和旁路都要经过下线、替换与隔离验证，不能仅凭拓扑宣称鲁棒。</p>
+  <p class="core-question" data-page-node-id="ELcicCDUDQohTowMo5PFXh"><b data-page-node-id="SEvffJ9GLseGzBlg6vAE1J">执行问题：</b>增加中央控制后，获得的可控性是否值得付出自适应性和单点失效代价？</p>
+  <div class="tw" data-page-node-id="lpvaMAtw7itdDk8wOBjEg6"><table data-page-node-id="wfnTzqIRRCBNNQpsiQwHBS"><thead data-page-node-id="gNSsOuvvVKrPA3sXRTDlrh"><tr data-page-node-id="iXJkngxnh4y91BqzZMSI5a"><th data-page-node-id="ESI6pRF7CA0f4TV3V9iSxF">契约项</th><th data-page-node-id="T13SeY6Lr59bGq2ymqCK5j">项目必须填写并执行的内容</th></tr></thead><tbody data-page-node-id="HRKJdhF8k2e2ZVWwFsBK3G"><tr data-page-node-id="IZA1p0OCpjuJRYTvhINklw"><td data-page-node-id="GMIPw9DzCb6HNpbTWj4t5m">责任人</td><td data-page-node-id="z83WsQs3n8PmalELDzawHG">平台或 SRE 负责人。</td></tr><tr data-page-node-id="yxH3UnHw5AYaatmmSGrugi"><td data-page-node-id="7X4YNCImIBBqJNtekTiIqC">触发条件</td><td data-page-node-id="CKVdcgxrN43FlD1mcjrw9K">新增中央控制点、替换通道或关键依赖后；并按登记周期演练。</td></tr><tr data-page-node-id="qke5ZPVeIJLiffrpFvz7LU"><td data-page-node-id="yuJiJrU5bEiRnGhsfck9FK">测量口径</td><td data-page-node-id="hGH1lBixYF6gJqLQLJy4NO">关闭控制点或通道，测量替换成功率、恢复时间、影响范围和数据完整性。</td></tr><tr data-page-node-id="qDiNjXO0mmwFQ8Q83ReFkj"><td data-page-node-id="fYG19vtuG0uttXvnCJ9OvV">通过条件</td><td data-page-node-id="oj0Zo5kX6dD0HWlQP8hgEp">结果满足项目登记的恢复时间和影响范围；切换过程不绕过授权，也不污染核心状态。</td></tr><tr data-page-node-id="7FPGe55IxfWANQFGNNAlJq"><td data-page-node-id="t9ZMoWxcIcwdZ2wUIP3toP">证据产物</td><td data-page-node-id="dIyLVGyAV9sDJnm0Nvblmg">架构决策记录、故障注入方案、演练日志、恢复时间和完整性校验。</td></tr><tr data-page-node-id="4w6oCdXr4YQGH5vMBuijhe"><td data-page-node-id="aX5nVH52OqULMpVaVUQv6p">失败处理</td><td data-page-node-id="UKEWCGctmAaj28aR0N7tXX">回滚新增控制点，启用受控降级或隔离故障域，并登记修复期限。</td></tr></tbody></table></div>
+  <div class="ref" data-page-node-id="XEl9Kcav7m779wBNOG6dmB">论证与公式见附录：<a href="#inspiration-10" data-page-node-id="Sp15gAi3PXLedoZHTrxIxZ">启发 10</a>、<a href="#inspiration-11" data-page-node-id="yqQ81ey1PzsZVsSj7FuAfB">启发 11</a></div>
+</section>
+
+
+<h2 class="sec" data-page-node-id="24ZOqYVuwx3nWEkEXCotyG">六、「场」的落地设计 <span class="principle-tag" data-page-node-id="dgD24cyuu0wJD0x6K1azzF">对应 <a class="principle-link" href="#core-C1" data-page-node-id="EqLwFT1KkikLVgOVlA7QLv">C1 选择性卸载</a>、<a class="principle-link" href="#core-C2" data-page-node-id="waHhjgMcDdJhHJINyA0BGp">C2 硬容量边界</a>、<a class="principle-link" href="#core-C3" data-page-node-id="6iglUJkL1iSooPLkwDHak5">C3 可验证基线</a>、<a class="principle-link" href="#core-C4" data-page-node-id="VDQtKxkaLpDgCTEo44bFgL">C4 场信号与显式授权</a>、<a class="principle-link" href="#core-C5" data-page-node-id="NK8J7nkGTmEC0paCos0DAU">C5 维护制度化</a>、<a class="principle-link" href="#core-C6" data-page-node-id="cfP9tzFygHEUpKaxTbgbU4">C6 组合结构与失效隔离</a></span></h2>
+<div class="card" data-page-node-id="VLv4Lt1oG2AlamRXDs1SVr">
+  <p data-page-node-id="oez9f81FIeow0YHQqnc1oA">C4 的结论是：场可以减少重复规则，但<b data-page-node-id="yEc4UgtCBEeqhir1HWnHCn">不能消灭规则、漏判或冲突</b>。
+  这里说的「场」不是某个 LLM 的上下文窗口管理技巧，而是<b data-page-node-id="WQhlSeA9i1LBjDcBFT5i63">一个 Harness 系统在真实研发项目里运行所需要的整套结构性环境</b>——
+  以 ForgeAgent 这类轻量 LLM agent 为例，它包括：工具注册表与沙箱分级、Golden 验证基线、milestone 治理与 CI 门禁、有界的记忆与上下文。
+  场的存在，让风险排序获得连续信号；授权仍由显式策略和硬边界决定。</p>
+
+  <h3 style="margin:18px 0 8px;font-size:15.5px" data-page-node-id="QhHRXGffiT32DSDSox8m7n">1. 场信号如何减少重复规则（但不替代规则）</h3>
+  <div class="tw" data-page-node-id="9vrwtnHyS1uRU3DUUetJfM"><table data-page-node-id="ywRhKFDFvPsI3WZEdO1sFf"><thead data-page-node-id="mp0aQEZd4D9scSF1nrFglP"><tr data-page-node-id="XkJhJXXyy5xudti6ChkBfi"><th data-page-node-id="xOrzVJR9D0rJbGzvb3ZrLg">维度</th><th data-page-node-id="vxF1B4PcuqF6QlLYCKTaX8">规则（if-else）</th><th data-page-node-id="30z1FcSFsuftWWy8hHXcZ8">场（连续标量）</th></tr></thead><tbody data-page-node-id="H2nennl3x9EdrguIk4QZve"><tr data-page-node-id="HInWUSttJ7PWegRCoFuR4c"><td data-page-node-id="mzstMc8nbckkuanrLZ0FuD">判据形态</td><td data-page-node-id="X0lCiKjA19sE9RGoNAgdyt">离散条件（if-else）</td><td data-page-node-id="lhEG1XC3lJa6WVqkPk4jMH">连续标量 ρ + 硬边界</td></tr><tr data-page-node-id="IgduoPBmtMuRbU44847SNi"><td data-page-node-id="CheE6GNlpnjXEiScnDxmDJ">规模成本</td><td data-page-node-id="8HfZWvRCCxYfEHMCYxQbmH">O(N)：需评估 N 个元素并维护规则</td><td data-page-node-id="HY6bH27CWPb4GU3Em26FSC">计算 ρ 仍为 O(N)，可减少重复阈值</td></tr><tr data-page-node-id="CmMkDJbBzAkIYWhDIjxfy2"><td data-page-node-id="k3YqPd3F3lZ8XCFvng57mq">未覆盖情况</td><td data-page-node-id="B7Hbp2Sc8AiBQMj9tNbpm0">可能漏判，需 deny-by-default 兜底</td><td data-page-node-id="3tMGZXa7bnFHMYmruqXP4Z">只能作为排序信号，不能自动放行</td></tr><tr data-page-node-id="2DIDNlD9p0DfOeTEC7GE7D"><td data-page-node-id="avGhGhvXQ319RGRtfPGO5C">冲突处理</td><td data-page-node-id="wAK4lFAGLFtMn5964QauZz">需要优先级仲裁与明确拒绝路径</td><td data-page-node-id="dfzx43l4RR6JIar98k6fJG">标量排序不消除冲突，仍需规则裁决</td></tr><tr data-page-node-id="ZpNdG3EePQN9u4VmLhUMG9"><td data-page-node-id="V3ALu56xGWkrij13e6cFph">验证方式</td><td data-page-node-id="jf37JhpCnrHJZJ61FJtBbC">逐条测试</td><td data-page-node-id="VpghFBMUeRwMuWdbO1e399">测分离度 κ —— 但仅限存在标注有害类的通道（见本节第 5 小节「可验证判据」）；否则用标注评审集测排序质量</td></tr><tr data-page-node-id="zopZ3ARslbFNcPxnfpCqZT"><td data-page-node-id="HyOk9De1i3DBQmniNPN9Oh">失效模式</td><td data-page-node-id="E18BGc4uTXjfN96IdB2aYs">规则腐化、互相矛盾</td><td data-page-node-id="lbqRqmwHuEu71I6gJHDqJf">参数漂移或误排序（需独立审计）</td></tr></tbody></table></div>
+  <p data-page-node-id="1FDlQbMZHtcCceCNMEAW7L">研发场景里规则数量会增长，因此可用连续信号减少重复判定；但对未覆盖情况必须 deny-by-default，
+  并保留优先级、阈值、路由和人工复核，不能声称“没有漏判”。</p>
+
+  <h3 style="margin:20px 0 8px;font-size:15.5px" data-page-node-id="HMwccNFiCk68E6O26BfXE8">2. 场的最小定义：给每个项目要素算一个连续标量 ρ</h3>
+  <p data-page-node-id="U89kOaP60PQKbKbgiTD7RJ">物理场的类比可转成排序信号，但软件授权不能由它自动决定。
+  对应到 Harness 研发场：给仓库里的每个要素（模块 / 工具 / 依赖 / 任务 / 测试）算连续标量 ρ，供排序、抽样和人工审查使用；爆炸半径另行评估。</p>
+  <div class="fx" data-page-node-id="o4ECKEDgwEauwQNJzBQ9YT"><code data-page-node-id="EIOObIxEKK5J56AOY5lCeG">ρ_priority(x) = α·冗余度 + β·陈旧度 + γ·失效率
+blast_radius(x) = 可触达资产 × 权限等级 × 故障影响范围</code></div>
+  <p class="cap" style="text-align:left" data-page-node-id="MxB7F8P4nr1jkCXDP7nZkB">符号说明：此处写全 blast_radius(x)，以免与第四节中表示渠道/堰宽的 B 混淆。</p>
+  <p data-page-node-id="NAZlSDPdIWQCYCq5QUjxAr">输入可以从 git 历史、CI、单元测试与 golden 回归记录采集；权重、阈值和授权规则仍需显式维护：</p>
+  <ul style="font-size:13.6px;color:#334155;margin:8px 0 8px 18px" data-page-node-id="QYxOWOKq7yTHmr4diD5Rue">
+    <li data-page-node-id="QCOXknkUHzFzQLtziBFUWq"><b data-page-node-id="CleB1hOzixVCj8FKvW9ImI">冗余度</b>：代码 / 配置重复度（复制粘贴模块、重复函数、过度抽象），重复即升高</li>
+    <li data-page-node-id="N6nMlc5LA7UwJmZO3OOLpu"><b data-page-node-id="EbE3q06E9MWzj8sQ8mmMZ8">陈旧度</b>：自最后一次被改动 / 引用以来的步数，按 exp(−Δ/λ) 衰减</li>
+    <li data-page-node-id="KYvo75gdwN51a8WnB820Z0"><b data-page-node-id="fQk9kD1LBPQpkOxGPvafpv">失效率</b>：该要素在单元测试与 golden 回归中的失败率（含 flake 率）</li>
+    <li data-page-node-id="BMd1QfPKQ44glwr33yYm0W"><b data-page-node-id="n5XNBHDPUMXVbyqk60m43E">引用度</b>：作为相关性和人工审查优先级的旁证，不抵扣风险</li>
+    <li data-page-node-id="9T5TQag0FCqN2igoja5FqH"><b data-page-node-id="J41erHMYJXTsgqYP4gwNuB">爆炸半径</b>：按可触达资产、权限等级和故障影响范围独立计量</li>
+  </ul>
+  <p data-page-node-id="7cfTFuInKXFdmPaB53v97x"><b data-page-node-id="HOMTv5jjARycMdSAZWM9Rh">ρ 是连续信号，不是授权标签。</b>一个工具或模块可按 ρ 与触达面排序，但 trusted、restricted、untrusted 的路由仍需显式规则、能力边界和人工审查；高引用度不能自动降低风险。</p>
+
+  <h3 style="margin:20px 0 8px;font-size:15.5px" data-page-node-id="6bZfG87aEdIDYyoYaXbKT0">3. 通道的几何：把研发要素从「白名单」改成「河道」</h3>
+  <p data-page-node-id="CHKrd9SsjqG9nIyg5lCPgD">ρ 高的要素可以作为隔离候选，默认进入 restricted/untrusted 沙箱；ρ 低也不能绕过 trusted 白名单和能力审查。
+  <b data-page-node-id="bBJKTyEJtJHm6R7GIQJa1J">路由可按提交或任务重算，但必须经过显式策略</b>——这才是可审计的场映射。
+  下表把都江堰的每个构件翻译成 Harness 研发场中的对应部件（以 ForgeAgent 为实例）。</p>
+  <div class="tw" data-page-node-id="cuAD8O26aubXUlY39oIGU1"><table data-page-node-id="y7PNekXSxi38gdhIewk9yR"><thead data-page-node-id="lIoqmCRDDr0PMdzvu65osA"><tr data-page-node-id="fhxA8XZYI1hNRgiQV6FYop"><th data-page-node-id="NJfAbQBXrrkZodM5Fyd1jW">都江堰构件</th><th data-page-node-id="pZ82rHC2zVvitxfTG9tt35">在「场」中的角色</th><th data-page-node-id="yvInT1s8U0t684oTXYIZPB">Harness 研发场落地（ForgeAgent 实例）</th></tr></thead><tbody data-page-node-id="uF7YEWhFe5Q5NjrdYcvRsi"><tr data-page-node-id="mDQ1hVwbujZ5dYGqGcRLN0"><td data-page-node-id="UJIGSzR69k21r1wotiVawC">弯道（R = 850 m）</td><td data-page-node-id="JJ8M4BnEzmYKaUZ2bibBvF">场的结构参数，决定分离强度</td><td data-page-node-id="CCH9XRpmBSsrt6g0gMjhaA">工具注册表 + 沙箱分级（trusted / restricted / untrusted）。参数变化仍需评审与回归</td></tr><tr data-page-node-id="uKWVAgp6fsaNZDd1iSgfUn"><td data-page-node-id="VbVFQfBx4WzbjFg1Kzaodd">离心力场</td><td data-page-node-id="P3aDRDZtWmCVKX8G8eHz4I">作用于每个要素的连续力</td><td data-page-node-id="Dz8A0pC7tpeqMr8Ud4ZCMG">ρ_priority(x) = α·冗余度 + β·陈旧度 + γ·失效率；爆炸半径单列评估，引用度不抵扣风险</td></tr><tr data-page-node-id="vIiURLm53uy4z51tUeQu3b"><td data-page-node-id="vV4Nd5IerUYEJ7OBJEaMoN">表层 / 底层</td><td data-page-node-id="rU4ACGGKorDnzWGxDApP6R">场的两个出口</td><td data-page-node-id="Ydgrv5bfB0BJQEoItU0UDc">trusted 核心路径（受信工具直接执行）/ untrusted 隔离沙箱（容器，不可触核心）</td></tr><tr data-page-node-id="idgAViRIEdQUD73ETi7aIE"><td data-page-node-id="sCkPbBel4iDLaVBsuLZaAh">内江（凹岸）</td><td data-page-node-id="7du05YlnaXm0Be28LZx9RW">取表层清水</td><td data-page-node-id="EZYHLSkDL0mvAGBYlmrzGu">ρ 低、触达面小 → 仅作为候选排序；trusted 仍需白名单、能力边界与策略批准</td></tr><tr data-page-node-id="NHMCMn7xSgVMF5C7W9ZoTX"><td data-page-node-id="eKNZjpB0BGs00lABxPZSDA">外江（凸岸）</td><td data-page-node-id="zj2KzZhXg1HNSjCLW92lrH">收底层泥沙</td><td data-page-node-id="B2kboyRj2GiSzvGpUolXGR">ρ 高、触达面大 → 默认进入 restricted/untrusted 沙箱，隔离执行、失败不污染核心</td></tr><tr data-page-node-id="Uj4NLx6kjYpDlkXwriW6XJ"><td data-page-node-id="81SnN4HFygfXENHkeYEoJ5">飞沙堰</td><td data-page-node-id="JXtjYHP9Hdw5DFhBDBr0GP">侧向溢流，达到水力条件后工作</td><td data-page-node-id="a9HLG4b2KTEsGAM7o3O9B9">CI 检查每次提交都运行；健康度分别看执行覆盖、真实缺陷检出和误报率，不规定非零拒绝率</td></tr><tr data-page-node-id="cUap9aW5eb554ec4Wh26zA"><td data-page-node-id="JYHvLMghHeASSg3pcvQFTN">宝瓶口</td><td data-page-node-id="m5jEGM2NJDWS9ZsLQa4uqX">确定性上限</td><td data-page-node-id="ryulcFvXDU2onkR6TSJnYu">进入模型的 token 上限与记忆有界，写成内核常量而非 Prompt 建议</td></tr><tr data-page-node-id="LhPG912sZCHG5ZWm2xRzdB"><td data-page-node-id="H2pSTDGt11pE7bK390z2vn">卧铁</td><td data-page-node-id="iCzJxy7SgC6niUszwVACXK">地下标尺</td><td data-page-node-id="JXwKRV2FO1ozXZ3A1DUJOj">Golden 基线 + state_hash 由事件流重算；缓存只是加速，不是真相</td></tr><tr data-page-node-id="C7mJQ62TFxWtSexqQ2e6iw"><td data-page-node-id="g51lNqXQc6Sg8j8whxNWW3">岁修</td><td data-page-node-id="3C3ac90510WwmW2NTSPfLC">定期维护</td><td data-page-node-id="Hs0rf1J8bkEZokWIL7zfAJ">milestone 治理 + 三评审闭环 + 定期 golden 回归（从事件流重放对账）</td></tr></tbody></table></div><p class="cap" style="text-align:left" data-page-node-id="or6YdVhasSOAou18trJiwQ">注：本节把内江 / 外江映射到 trusted / untrusted 执行层，与导言概念对照表（内江 = 主上下文通道、外江 = 卸载 / 归档通道）回答的是不同问题——前者讲「在场上如何路由」，后者讲「在系统边界如何分流」，二者并不冲突。</p>
+
+  <h3 style="margin:20px 0 8px;font-size:15.5px" data-page-node-id="ol63sEsTfRmxCyuRajjGLx">4. 「标准埋在地下」在场上怎么落</h3>
+  <p data-page-node-id="ksmBmyOEBTAUyll2KeRoqa">卧铁有三个特征：<b data-page-node-id="QCNueOIw6pOJlkpXkEts4c">埋在河床下（不在表面）、挖到位才可见（不能口头声称）、是淘滩的标尺（判定标准）</b>。
+  在研发场中，这三点翻译为：</p>
+  <ul style="font-size:13.6px;color:#334155;margin:8px 0 8px 18px" data-page-node-id="GDcKegPxDYFPtFvFv6SDef">
+    <li data-page-node-id="HTz124iMWbSZlmRLoORD4S"><b data-page-node-id="ry4sOiGWVmGg2bxvhCKMGQ">关键标准应有可重算的基线。</b>系统的「正确状态」不能只靠声明文档；是否采用事件流重放，取决于一致性和审计需求。</li>
+    <li data-page-node-id="JQq4GsR9AcRzLJZRyKiBAW"><b data-page-node-id="Oo5ZAuSGWCpC58LLqFPZmD">验证 = 重算，不是比对声明。</b>缓存与快照只是加速，不是真相。
+    定期对账：从事件流重新投影，与当前状态比对，不一致即判定漂移。</li>
+    <li data-page-node-id="nlK0CroGh5WxwqlGfLfaim"><b data-page-node-id="0arq0C2C4Uf6vV3wiOJ82j">标尺必须可重复测量。</b>可选 Golden 通过率、哈希 / Merkle 根、单调递增序列号以及延迟、token 数、失败率；具体组合按项目审计要求确定。</li>
+  </ul>
+  <div class="fx" data-page-node-id="DnfFLeWl4dmz2CGwlRRESl"><span class="lbl" data-page-node-id="09g9W0acl4ldRmAVdEMNOH">落地动作</span><p data-page-node-id="tJvBCzGcPkxrSaCF7RkFkv">若项目选择事件流方案，可为关键状态附 <code data-page-node-id="fG3rdXTqGGegyQGSWdZApj">state_hash</code>、维护 Golden 集并提供 <code data-page-node-id="QzXVXahO4RkpVfETLBSHTL">replay(from_seq)</code>；这些是项目特定方案，不是都江堰必然推出的规范。</p></div>
+
+  <h3 style="margin:20px 0 8px;font-size:15.5px" data-page-node-id="kZI9Rn39TtBJFhwVmk5r8r">5. 硬边界检查应持续执行</h3>
+  <p data-page-node-id="SrCxNooZ82OjTDDsqe4BrY">飞沙堰的物理特征是：堰顶 728.25 m 是几何常量、水过不去时无法谈判、古训明令「低作堰」禁止加高。
+  在研发场中翻译为四条：</p>
+  <ul style="font-size:13.6px;color:#334155;margin:8px 0 8px 18px" data-page-node-id="RnapHXT4on4RUCUfqEmjLZ">
+    <li data-page-node-id="EAreQKnroGUcHWltphPpg1"><b data-page-node-id="4tnAJ0HRR9BaLoEp0gRW7S">阈值放在不可运行时修改的位置。</b>内核常量文件 / 只读配置 / 哈希锁定的配置段；
+    CI 门禁要求改动需评审 + 事件留痕。不应出现在 Prompt、文档或 agent 可写的配置里；跨边界仍需硬门禁。</li>
+    <li data-page-node-id="SOcux9hliTnXV2DECZnruo"><b data-page-node-id="XMWmDpUWfGq89ZCukBd8Ct">检查执行和检查拒绝是两件事。</b>适用的 ruff、pytest、golden 与沙箱策略应在每次提交或任务中运行；没有拒绝可能表示输入健康，不能单独据此判断阈值高低。</li>
+    <li data-page-node-id="fBzLvjUWhoTvP2KyFpXOvc"><b data-page-node-id="78whWPAwpQcnt5FMQxeH8r">门禁健康度分开统计。</b>至少记录执行覆盖率、真实缺陷检出率、误报率和绕过次数；是否设置目标区间由项目风险决定。</li>
+    <li data-page-node-id="j6PHPjrHFLd88EpEdqJ3tE"><b data-page-node-id="pGyFmR86qobJJFvA1FFovc">抬高阈值 = 把成本转移到未来。</b>加高堰短期多引水（KPI 好看）、长期排不出沙
+    （河床抬高 → 系统功能逐步丧失）；对应放宽熔断、跳过 Schema 校验、放行 untrusted 直接执行——
+    短期通过率上升，长期系统淤废。</li>
+  </ul>
+  <div class="fx" data-page-node-id="ssdzwRBarUx9d43mFu3Xux"><span class="lbl" data-page-node-id="wH05U2wKuIYm9oAXFcX0rG">可验证判据</span><p data-page-node-id="krRuxFoD4IkIFzBAIdd1BV">对适用变更，CI 检查执行覆盖率应达到项目登记值；拒绝率不设通用非零目标。越权绕过必须为 0，误报和漏报用标注样本定期复核。κ 只用于已定义有害负载的选择性卸载通道。</p></div>
+
+  <h3 style="margin:20px 0 8px;font-size:15.5px" data-page-node-id="TSuHYHwiyg8dUFZGRbf5KI">6. 最小可行实现（四步）</h3>
+  <ol style="font-size:13.6px;color:#334155;margin:8px 0 8px 18px" data-page-node-id="yvhrsyNU6KbcyvCBD3ThgH">
+    <li data-page-node-id="c8zvn5XQ7Iyr6EZNK2Z6id">给每个项目要素（模块 / 工具 / 依赖 / 任务）算 ρ，并单列爆炸半径，记录权重、阈值和数据来源</li>
+    <li data-page-node-id="qR8F1VQfZM8FtNlumvUrRd">建三条主河道 trusted / restricted / untrusted；路由 = 显式策略 f(ρ, 爆炸半径)，默认 deny-by-default</li>
+    <li data-page-node-id="boZhbMsRSyTKZhK6yV44vI">沉降层 = untrusted 隔离沙箱，按 milestone 批量清理（深淘滩），失败不回灌核心</li>
+    <li data-page-node-id="WCNflgCmyPU31GBXSmWJrH">卸载阈值与窄口上限（token / 记忆 / 沙箱 tier）写进内核常量，CI 门禁保护（低作堰）</li>
+  </ol>
+</div>
+
+<h2 class="sec" data-page-node-id="1UiRqEwkrp1nSpNrTWf2Nw">七、反例、代价与边界 <span class="principle-tag" data-page-node-id="HWTIGOF8WJYrm3CF0rmAHl">对应 <a class="principle-link" href="#core-C1" data-page-node-id="00rq1R7IYRG9UIhbar1BXg">C1 选择性卸载</a>、<a class="principle-link" href="#core-C2" data-page-node-id="WsVTLaQfp7w0iGRFE62RYp">C2 硬容量边界</a>、<a class="principle-link" href="#core-C3" data-page-node-id="omDiLqk0v4v5wloIsHvELG">C3 可验证基线</a>、<a class="principle-link" href="#core-C5" data-page-node-id="mgSAvvD2jgDWNRTSDth2r1">C5 维护制度化</a>、<a class="principle-link" href="#core-C6" data-page-node-id="YAEFOJSDtb1Qf8TpcoAdyC">C6 组合结构与失效隔离</a></span></h2>
+<div class="card" data-page-node-id="oK7DDrRVYs7hAXJe6Zqnc9">
+  <p data-page-node-id="DqIfwWhDhzXEHGwvdmlwFF">以下记录观测边界、历史失效和控制代价，避免只保留正面案例。</p>
+  <div class="tw" data-page-node-id="b8TY9l0zO6KR1TkZdnZMXZ"><table data-page-node-id="m5zPrZcL5xdtFDELCTT4ra"><thead data-page-node-id="hqDj20mFsDdnIFy3We4Bx1"><tr data-page-node-id="e6NCMKA8rYHNoKowYrVq87"><th data-page-node-id="THhs5TrDQKnC5TV30UxIAy">反例 / 代价</th><th data-page-node-id="hlZf0eGmoSAPUGosX7KdC7">证据</th><th data-page-node-id="RPprXUw4NCnj3pbdRZ0gcT">对 Harness 的警示</th></tr></thead><tbody data-page-node-id="clUEo5AO4b7ju2E9TvowEX"><tr data-page-node-id="5lOVp0BRRrQoIFeKDz8hwX"><td data-page-node-id="zJGKrG84gETELEjTERYV8v">“分四六”不是物理常数</td><td data-page-node-id="0NFx2qG9KpM4u3rLpGq3Bf">1965–1979 年逐年汛期内江分流比在 39.6 %–62.2 % 间波动；[5] 结论部分直言“分四六”只是历史概念，随河口工程与河床冲淤而变。</td><td data-page-node-id="NTY17vj1rEdEDCPdPJzncA">不要把一个历史经验值当成设计约束。Harness 中同理：任何“最佳实践比例”（如上下文预算占比、重试上限）都必须标注其成立条件与失效边界。</td></tr><tr data-page-node-id="LZGCDCOI7MyGK7wcYt8Wxg"><td data-page-node-id="F7z0VqDBo65abqzEQY0ohA">分流比曲线非单调（存在饱和区）</td><td data-page-node-id="DaHYMtKYJjmpg5u03DuGq5">内江分流比在 Q≈5 000 m³/s 触底 40 %，Q=7 000 时回升至 48 %（[5] 图 2-6）。</td><td data-page-node-id="uSX48Ij3X4YBFjRWBjHu6h">该曲线存在拐点，但不能据此推断所有负反馈系统。项目若观察到饱和，应记录拐点及其后的限流、卸载或人工接管行为。</td></tr><tr data-page-node-id="9Xcg1DsEfQyXBmNWzNsN9k"><td data-page-node-id="vNcRmjAOKBTQett5pxFwKJ">牺牲可重建组件，保护不可重建资产</td><td data-page-node-id="JDgZo0mY15WljSDxoDmWNX">飞沙堰为竹笼/卵石结构，特大洪水时允许冲决；宝瓶口是凿山而成，不可重建。宁毁低堰，不淹咽喉。</td><td data-page-node-id="9qaBJOw9BJnACz3oA9BMHK">Harness 中：宁可让可重建的组件（缓存、索引、派生状态、重试队列）失效，也要保护不可重建的资产（append-only 事件流、权限裁决链、审计证据）。</td></tr><tr data-page-node-id="OkUFznfBJNTjXe8Fwknd9j"><td data-page-node-id="lHWLbSBFFF3xGNbFr336lN">加坝的代价是真实存在的</td><td data-page-node-id="ZRHGaLNq3SaAGntR9tcUZw">1974 外江闸后自然调节被人工调节覆盖（春 75 % / 汛 37.5 %）；紫坪铺水库改变了泥沙与水温情势。</td><td data-page-node-id="WUQR5UjIhZasVqbrs7bCmb">每引入一层中央控制，都要在架构决策记录中显式记下“放弃了什么自适应能力”。</td></tr><tr data-page-node-id="jOSjCDa8PROtbYtKGKiqS9"><td data-page-node-id="eukJUB0PgNzdOFcFpK2Rwk">维护中断会改变工程状态</td><td data-page-node-id="3bKda5viiXhY3rRmHet2lt">水利部词条记载，战乱时期工程曾因失修多次失去功能，恢复后再重建维护制度。</td><td data-page-node-id="te0t2H5RUKQviX3pEBWsPU">维护不是寿命叙事。项目需要记录责任人、期限、逾期影响和恢复验收。</td></tr><tr data-page-node-id="WA4ZIUThUkqnOZkHghFvOP"><td data-page-node-id="BlGnZUUcIHq59i9uV2eDIm">观测不能替代机制</td><td data-page-node-id="DRbCW7d9lFxpt2OKSJInMi">都江堰的长期实践早于数字孪生；现有材料另称系统有 2 675 个监测点、预报误差 &lt;20 %，原始统计口径仍需核对。</td><td data-page-node-id="ZX3AAuIBVW2o4VfEasy84l">先保证机制正确（几何、约束、不变量），再加监控与预测。用监控去补机制的洞，是本末倒置。</td></tr></tbody></table></div>
+</div>
+
+<h2 class="sec" data-page-node-id="T3L2schN2FlRkuHOitJZIh">八、论文与资料 <span class="principle-tag" data-page-node-id="ZQoHFJbNvFEGYEtdHXwcht">对应 <a class="principle-link" href="#core-C3" data-page-node-id="jyjGYiFtwgjbMb1tI2Qw7G">C3 可验证基线</a></span></h2>
+<div class="card" data-page-node-id="U4hL2FEKGUaGmKicvsPzQ6">
+  <p data-page-node-id="dJJT8E7iLEuuCzPCJR5MLv">以下为本次检索到的核心文献。<b data-page-node-id="KU5JeE18Vj5axkZypXKU3S">来源等级</b>表示材料本身的出处（同行评议原文、官方原件、转引或索引）；
+  <b data-page-node-id="fDAmHklEo0MIEqky2qEtQa">结论证据强度</b>另按是否有页码、表号、同断面配对和独立复核判断，二者不等同。
+  每条最前面的<b data-page-node-id="3BPU9HVbezm7ufxiQOm0H0">方括号编号是本报告的引用序号</b>——正文与所有数据表的「来源」列均使用同一编号，
+  可据此回查完整题录（序号后的名称为该文献简称）。
+  注意：来源列中的「转引其参考文献 N」指该文献自身引用的条目，与本报告编号无关。</p>
+  <p style="margin-top:6px" data-page-node-id="I4c0gyYyhOvZpO6m9Yj8Mt">说明：① 十六篇中有十篇为背景/佐证文献，正文未直接引用其中任何数字：
+  [2][3][4][8][9][10][11][13][14][15]，列出以备查证；其中 [9] 与第七节紫坪铺论述、
+  [13][14][15] 与第一节渠首几何、第三节河床演变论述在主题上最相近，但本报告没有任何数字归属给它们；
+  ② 数据表中标注百科、新闻稿、华文百科或转引的材料为辅助证据，不能单独支撑关键数字的一手 A 级结论；
+  ③ 关键数字若未给出原始页码/表号，只能作为待补证据，不作为独立校核。</p>
+  <article class="paper" data-page-node-id="8ZCSm5YotL3UVlKN9lUvf8">
+  <div class="pt" data-page-node-id="8ezruBwAXQCcMITVvo6n5a"><span class="pkey" data-page-node-id="s8HnpjPDL46UcVGmx0gDqR">[1] Zheng et al. 2020</span>Sustainability of the Dujiangyan Irrigation System for over 2000 Years — A Numerical Investigation of the Water and Sediment Dynamic Diversions <span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="TOq8vR29tA6P2TjnIXCPnX">来源级别 A</span><span class="evidence-note" data-page-node-id="37Z1inqwrWElXsLVZWDm0E">结论强度：同行评议原文；引用页码或图表号待补</span></div>
+  <div class="pa" data-page-node-id="IPNjuH3gOS5XTMsyiQxNnG">Zheng X., Kazemi E., Gabreil E., Liu X., Chen R.（四川大学水力学与山区河流开发保护国家重点实验室 + Univ. of Sheffield）</div>
+  <div class="pj" data-page-node-id="hnNtsm38FZQlNJaGQoUWOn">Sustainability, 2020, 12(6): 2431. DOI 10.3390/su12062431</div>
+  <a class="pl" href="https://eprints.whiterose.ac.uk/id/eprint/159659/1/sustainability-12-02431.pdf" target="_blank" rel="noopener" data-page-node-id="5o4LoyM3qJTxyhGWRCZ3RN">https://eprints.whiterose.ac.uk/id/eprint/159659/1/sustainability-12-02431.pdf</a>
+</article><article class="paper" data-page-node-id="92nN8otGLiYugIkzjCc474">
+  <div class="pt" data-page-node-id="mU6tWrRUVwEoOJqYAGJaf0"><span class="pkey" data-page-node-id="UMWdQQEYx4toJIi97Uu4PK">[2] 宋凯等 2018</span>无坝取水分流防沙试验研究 <span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="9KXc9ycRPJdRAeTn1ta4k9">来源级别 A</span><span class="evidence-note" data-page-node-id="GpWpSmp9LIX6BHGYUHXhWJ">结论强度：同行评议原文；正文仅作背景</span></div>
+  <div class="pa" data-page-node-id="3QiqiRMr1Hn6hx2iCuTOHg">宋凯、邓军、卫望汝、杨正丽（四川大学水力学与山区河流开发保护国家重点实验室）</div>
+  <div class="pj" data-page-node-id="bmdHYUmfkSMkQosd7MVZOD">人民长江, 2018, 49(10): 109-114. DOI 10.16232/j.cnki.1001-4179.2018.10.021</div>
+  <a class="pl" href="http://www.rmcjzz.cjw.cn/cn/article/pdf/preview/10.16232/j.cnki.1001-4179.2018.10.021.pdf" target="_blank" rel="noopener" data-page-node-id="moG01y8urROv8Go1skP8Lz">http://www.rmcjzz.cjw.cn/cn/article/pdf/preview/10.16232/j.cnki.1001-4179.2018.10.021.pdf</a>
+</article><article class="paper" data-page-node-id="X3IyIhTskLcJaZAEbiWE0s">
+  <div class="pt" data-page-node-id="dYoTSAQrBq618PHDn6xyt7"><span class="pkey" data-page-node-id="XbggsZGIeqbK4VgEk7uRf9">[3] 李洪等 2003</span>都江堰卵石河道变态模型模拟方法改进研究 <span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="BqJ91Sy0NbGuV5AxaotaO1">来源级别 B</span><span class="evidence-note" data-page-node-id="FKbCeCNMHTSDQ97H3Bwx8p">结论强度：文献索引；原文待补</span></div>
+  <div class="pa" data-page-node-id="DK97HFjIk0qFbx7DJBAzsX">李洪、赵文谦、曹叔尤、刘兴年（四川大学高速水力学国家重点实验室）</div>
+  <div class="pj" data-page-node-id="GyuWSn6PqCX2EsAEhp8pR9">水利水电技术, 2003, 34(11)</div>
+  <a class="pl" href="http://wanfang.sxlib.org.cn/D/Periodical_slsdjs200311034.aspx" target="_blank" rel="noopener" data-page-node-id="W4VFQwCruJO9D718hLceUo">http://wanfang.sxlib.org.cn/D/Periodical_slsdjs200311034.aspx</a>
+</article><article class="paper" data-page-node-id="CilKCVuVTogmrP6PL18xAJ">
+  <div class="pt" data-page-node-id="NB3B5aRMQNrmAEuRDEHqfc"><span class="pkey" data-page-node-id="hBmnfk8kfY5P6lDxFDnopT">[4] 杜国翰等 1980</span>都江堰工程改建和卵石推移质问题 <span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="kW4rfy1IBbPGgPGub5NOyw">来源级别 B</span><span class="evidence-note" data-page-node-id="jhm1mNUglVFA9PFM9EIoI1">结论强度：期刊目录；原文待补</span></div>
+  <div class="pa" data-page-node-id="fIaXzR9v5NnHjCWi5kPfK0">杜国翰、彭润泽、常德礼</div>
+  <div class="pj" data-page-node-id="5rc2EI4UnJJskKD8UXglcX">泥沙研究, 1980 年复刊号</div>
+  <a class="pl" href="https://nsyj.cbpt.cnki.net/" target="_blank" rel="noopener" data-page-node-id="Fo1QgfBZ01MlnAjUVONONB">https://nsyj.cbpt.cnki.net/</a>
+</article><article class="paper" data-page-node-id="DX2R1Zw8v7j9wTghAmFtfk">
+  <div class="pt" data-page-node-id="3ybamhbBlf2binZA5G092X"><span class="pkey" data-page-node-id="Pw0P96hd1kGn3R18uOsOkM">[5] 《都江堰志》</span>《都江堰志》第一章·传统工程技术 / 第二章·渠首工程（PDF 原件） <span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="o8K0EtMYWjhfl5cTQ5T5Yv">来源级别 A</span><span class="evidence-note" data-page-node-id="RzqFoVsDPO8St4fRtVVwIj">结论强度：地方志 PDF 原件；部分表图已定位，其余页码待补</span></div>
+  <div class="pa" data-page-node-id="WxObidIgQIokaCR2Ipo5ZE">四川省地方志编纂委员会</div>
+  <div class="pj" data-page-node-id="iLJARnfyRrTxDWCjq2s4m8">四川省情网 scsqw.cn 公开 PDF</div>
+  <a class="pl" href="https://www.scsqw.cn/Upload/main/ContentManage/Article/File/201701102113255732.pdf" target="_blank" rel="noopener" data-page-node-id="f2csknd8eiBM227XjH2uvL">https://www.scsqw.cn/Upload/main/ContentManage/Article/File/201701102113255732.pdf</a>
+</article><article class="paper" data-page-node-id="AWLD1tRQEV4Br6SKoU4rAw">
+  <div class="pt" data-page-node-id="xDtfYjhS3Wip8YskRDFO80"><span class="pkey" data-page-node-id="FPUIrJCLrxkAEQvT1GArBb">[6] 《工程手册 2024》</span>《都江堰灌区工程手册(2024)》 <span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="5bO2bTnIZwZrOL9T3YA6aV">来源级别 B</span><span class="evidence-note" data-page-node-id="dAxyrPmiqhBtt2qKMz3f8J">结论强度：新闻稿转述；手册原件待补</span></div>
+  <div class="pa" data-page-node-id="RQs4aFTVPbY3mMJPfMzlFb">四川省都江堰水利发展中心</div>
+  <div class="pj" data-page-node-id="xh8dEKOkF7o74mDDkxk8MH">2024 年 8 月发布（2004 年后时隔 20 年首次修编）</div>
+  <a class="pl" href="https://www.farmer.com.cn/2024/08/26/99963070.html" target="_blank" rel="noopener" data-page-node-id="RRlf2DiUdWTjqMDfvHZYY5">https://www.farmer.com.cn/2024/08/26/99963070.html</a>
+</article><article class="paper" data-page-node-id="ckxYDRAaagL3b4tjGeUqRR">
+  <div class="pt" data-page-node-id="f00MAMNry0jD5zt8ZegtPD"><span class="pkey" data-page-node-id="l4C3EbSNukdeGgVeaSUuWc">[7] 水利部《都江堰》</span>都江堰（水利部科技成果/水利百科词条） <span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="m687rJrhRWf9DPxF7080Gc">来源级别 B</span><span class="evidence-note" data-page-node-id="v2Wj8sNePn6Ov6syDpHyAy">结论强度：官方科普词条；原始工程资料待补</span></div>
+  <div class="pa" data-page-node-id="Ac8Yy6CxXhjeWDpaFTrYmO">中华人民共和国水利部</div>
+  <div class="pj" data-page-node-id="g8hJXE7LS6AGjBNZ3JqmnY">gjkj.mwr.gov.cn</div>
+  <a class="pl" href="http://gjkj.mwr.gov.cn/rdzt/2242/2245/202209/t20220903_1372602.html" target="_blank" rel="noopener" data-page-node-id="9izoDwQgyAYPZeDCTF2rkN">http://gjkj.mwr.gov.cn/rdzt/2242/2245/202209/t20220903_1372602.html</a>
+</article><article class="paper" data-page-node-id="DpRRO4DP3GvJKb9gQ1EFxa">
+  <div class="pt" data-page-node-id="VjEFctA4ESDDEhjNF4cAsd"><span class="pkey" data-page-node-id="koPCYjMOsvaJ9Lox8sfyEt">[8] 水利部 2025/2026</span>一堰润千年（人民政协报，水利部转载）/ 2000 多岁的都江堰依然“年轻”（科普时报） <span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="IZKGKgYBgKZPHuURQxwApf">来源级别 B</span><span class="evidence-note" data-page-node-id="FKrEz9A6foEuHl7niAkAub">结论强度：转载与科普材料；仅作背景</span></div>
+  <div class="pa" data-page-node-id="WZt6Dx698HUk9rHAppHRVF">水利部 / 四川水利职业技术学院转载</div>
+  <div class="pj" data-page-node-id="FOKm5zQWxctu3cWEc21Gky">2025-12 / 2026-02</div>
+  <a class="pl" href="http://www.mwr.gov.cn/xw/mtzs/qtmt/202512/t20251228_2097048.html" target="_blank" rel="noopener" data-page-node-id="UGBb2VgcARlo2ylejilHqd">http://www.mwr.gov.cn/xw/mtzs/qtmt/202512/t20251228_2097048.html</a>
+</article><article class="paper" data-page-node-id="buMe0qjQb6dJ3Ck4d7CakC">
+  <div class="pt" data-page-node-id="TTL8BnyixFhCdiiD0v9PZt"><span class="pkey" data-page-node-id="tyvKsfujHsx0PCsTApCFnZ">[9] 任文辉等 2022</span>紫坪铺水库对岷江水沙情势的影响分析 <span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="bAgbtd6qhRAX2iFojSdxRD">来源级别 B</span><span class="evidence-note" data-page-node-id="AehQiISca01jCoQlssasJL">结论强度：会议论文索引；原文页码待补</span></div>
+  <div class="pa" data-page-node-id="BKmzqkmAAj0L6UCnxvQhX4">任文辉、黄晓荣、崔萌、王延珺、魏晓玥</div>
+  <div class="pj" data-page-node-id="NCQ9keJXQ9kFkNUwGuNMYM">水科学与智慧水务——第十九届中国水论坛论文集，中国水利水电出版社，2022（CNKI 收录）</div>
+  <a class="pl" href="https://inds3.cnki.net/kmobile/ChinaMeeting/detail/MTZP/SLDC202204001009" target="_blank" rel="noopener" data-page-node-id="BfVl90QH4Hxy3m1R1o0v8l">https://inds3.cnki.net/kmobile/ChinaMeeting/detail/MTZP/SLDC202204001009</a>
+</article><article class="paper" data-page-node-id="KpWdbnvWeYkU4dosmvLGkF">
+  <div class="pt" data-page-node-id="idWYhApc6SmSAUB8C0agUD"><span class="pkey" data-page-node-id="Nsi1jjjAetWEtFa1HXzKyJ">[10] 论紫坪铺的影响</span>论紫坪铺水利工程对都江堰工程的影响 <span class="chip" style="color:#b91c1c;background:#fee2e2;border-color:#b91c1c" data-page-node-id="NNxmvCEKukY5VAXAGPeIZZ">来源级别 C</span><span class="evidence-note" data-page-node-id="TrN0nEm8c4jNL7HAxkRKrn">结论强度：第三方文库副本；原刊原文待补</span></div>
+  <div class="pa" data-page-node-id="hDShrqK9Trbm0TqSfQgs74">（科技创新导报，作者信息见原文）</div>
+  <div class="pj" data-page-node-id="s9WWrTZ2bvpV6GBOPmdBRV">科技创新导报（经 doc88 全文库收录）</div>
+  <a class="pl" href="https://www.doc88.com/p-7149542171683.html" target="_blank" rel="noopener" data-page-node-id="A6fzBB8ahGNdUTiUqM0BYz">https://www.doc88.com/p-7149542171683.html</a>
+</article><article class="paper" data-page-node-id="KhBmS0jw1VHdy6fUW9z5HO">
+  <div class="pt" data-page-node-id="ZBMe1dJyT47RPKkAr9l6xU"><span class="pkey" data-page-node-id="kn0PTz1k1P8x93YpxHDFtj">[11] 四川省水利厅 2020-08</span>都江堰管理局实施科学调度确保汛期成都市用水安全 <span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="TWTc6VYnP9qzKdbbIuD4ku">来源级别 A</span><span class="evidence-note" data-page-node-id="nqw1mlVYDu39osQCkSB4EM">结论强度：水利厅正式网页；可核验发布内容</span></div>
+  <div class="pa" data-page-node-id="se3aULnbcAOTI0DJi45mvQ">四川省水利厅（转发都江堰管理局）</div>
+  <div class="pj" data-page-node-id="Ukxey8IUgxQevSA3AuDxSy">2020-08-21</div>
+  <a class="pl" href="https://slt.sc.gov.cn/scsslt/zhzx/2020/8/21/44f7425382da4e379e48c8d8f299b4f7.shtml" target="_blank" rel="noopener" data-page-node-id="8LZouF54ajZyIIHltmgJVg">https://slt.sc.gov.cn/scsslt/zhzx/2020/8/21/44f7425382da4e379e48c8d8f299b4f7.shtml</a>
+</article><article class="paper" data-page-node-id="cGbo6WYoS7aUn9LTOQEEyt">
+  <div class="pt" data-page-node-id="HIOPV2c45L8uXKDzX2obUS"><span class="pkey" data-page-node-id="bZnNn5lqGYa6zJRoDzsrdc">[12] 四川省水利厅 2025</span>都江堰也有“定海神针”？（卧铁专题） <span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="molRNsmMjfSsSeUkEWpRkB">来源级别 B</span><span class="evidence-note" data-page-node-id="uk2rXtfvlPrFI4flNX6vsz">结论强度：官方科普；原始工程记录待补</span></div>
+  <div class="pa" data-page-node-id="eQcTfGs1lKsuclkq1W9CNm">四川省水利厅</div>
+  <div class="pj" data-page-node-id="hzwNi0eVtyJNELl1HTPfiw">2025-07-17</div>
+  <a class="pl" href="https://slt.sc.gov.cn/scsslt/c112522/2025/7/17/2e795a0e01b048b68aca91fd73b7f268.shtml" target="_blank" rel="noopener" data-page-node-id="QWgSbXmYsALJWjljSOZXh7">https://slt.sc.gov.cn/scsslt/c112522/2025/7/17/2e795a0e01b048b68aca91fd73b7f268.shtml</a>
+</article><article class="paper" data-page-node-id="uvVmcS4ZpWHLvAh8KMkdCx">
+  <div class="pt" data-page-node-id="QUADxI7dMWeOMst1O9vNE4"><span class="pkey" data-page-node-id="45paVEhWPiK6VyBRMncIey">[13] 杨桓 2024</span>都江堰渠首枢纽河床近期演变及引水浅析 <span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="vqYWZ5j7NQRsEbKRLSqCje">来源级别 A</span><span class="evidence-note" data-page-node-id="8ofrqNgXGVoH6bRnCOgf3b">结论强度：同行评议原文；引用页码待补</span></div>
+  <div class="pa" data-page-node-id="NhsZqVETU2bu0nDWHbCyBl">杨桓</div>
+  <div class="pj" data-page-node-id="y1ixQLTASBM5DEX14vGmfa">四川水利, 2024, 45(3): 37-41</div>
+  <a class="pl" href="https://scsn.cbpt.cnki.net/WKB/WebPublication/wkTextContent.aspx?colType=4&amp;yt=2024&amp;st=03" target="_blank" rel="noopener" data-page-node-id="SVB0sz8uLAdGDdTw52wxWm">https://scsn.cbpt.cnki.net/WKB/WebPublication/wkTextContent.aspx?colType=4&amp;yt=2024&amp;st=03</a>
+</article><article class="paper" data-page-node-id="AZHyI66NfUuyN62raPE82s">
+  <div class="pt" data-page-node-id="xhJYdcXlo37GXrF3uICW3P"><span class="pkey" data-page-node-id="YQPCvBPaTLHN2R2ZbeKu7H">[14] 程凯等 2026</span>固床坝工程对都江堰内江河段水动力影响研究 <span class="chip" style="color:#b45309;background:#fef3c7;border-color:#b45309" data-page-node-id="zUlHKiMZrAFuMClcc8GSVu">来源级别 B</span><span class="evidence-note" data-page-node-id="IjdOCU4sYPNTVDMIO3WDPq">结论强度：文献索引；原文待补</span></div>
+  <div class="pa" data-page-node-id="zMr1ZUvk7wqJH1uQdGyGx1">程凯、郑晓刚、倪晋、陆海田、贲鹏</div>
+  <div class="pj" data-page-node-id="lxXuF8peIkyEYeH3WZ41zO">人民长江, 2026, 57(4): 201-209. DOI 10.16232/j.cnki.1001-4179.2026.04.024</div>
+  <a class="pl" href="https://library.lzufe.edu.cn/articlesearch/web_searchingDetail?id=2031646032704" target="_blank" rel="noopener" data-page-node-id="CMEQmJzsz8Bw7uAJPvtMT5">https://library.lzufe.edu.cn/articlesearch/web_searchingDetail?id=2031646032704</a>
+</article><article class="paper" data-page-node-id="bRP3SpKM6V0gNvmVXoxnNO">
+  <div class="pt" data-page-node-id="3F7XRXMQM1E3kxCMgiLH9T"><span class="pkey" data-page-node-id="KVyM519RIBtPA492mAUfDW">[15] 郑钧 2008</span>都江堰枢纽区水流泥沙运动规律研究（博士论文） <span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="B9YYl2i8RNqzmLqBuQhQit">来源级别 A</span><span class="evidence-note" data-page-node-id="jYK86acBQ8YUopUnAG7Cmr">结论强度：学位论文书目信息；引用页码待补</span></div>
+  <div class="pa" data-page-node-id="dZLVyx9Zv3qZjlOrk30Kmq">郑钧（导师 王兴奎），清华大学水利水电工程系</div>
+  <div class="pj" data-page-node-id="21pnTJ0ofkLBir5l94gbot">博士学位论文, 2008-06-06, 128 页</div>
+  <a class="pl" href="https://newetds.lib.tsinghua.edu.cn/qh/paper/summary?dbCode=ETDQH&amp;sysId=174787" target="_blank" rel="noopener" data-page-node-id="devXlONuDGkZ9xkvzA8wWj">https://newetds.lib.tsinghua.edu.cn/qh/paper/summary?dbCode=ETDQH&amp;sysId=174787</a>
+</article><article class="paper" data-page-node-id="4wK2hmwxCHbiSl3BKvFpZI">
+  <div class="pt" data-page-node-id="tHd7QSERCeTO96PCsxgkoh"><span class="pkey" data-page-node-id="4MBjsLcH2WkR3lo3dZai95">[16] 李映发 2013</span>岷江与都江堰对成都平原生存环境的影响——从历史考察的角度 <span class="chip" style="color:#0f766e;background:#ccfbf1;border-color:#0f766e" data-page-node-id="A21Cplus6amLW33ImBr33Z">来源级别 A</span><span class="evidence-note" data-page-node-id="xG0JTbI0DCVo4i7yH8Lxf7">结论强度：同行评议原文；表 2 已定位</span></div>
+  <div class="pa" data-page-node-id="LhGN3EkLUsR6uPORBphJWD">李映发</div>
+  <div class="pj" data-page-node-id="hyi7poZooel94kUwlk7rY9">西华大学学报(哲学社会科学版), 2013, 32(2)（DOI 10.19642/j.issn.1672-8505.2013.02.003）</div>
+  <a class="pl" href="https://www.xhuqk.com/xhdxxbzskb/article/doi/10.19642/j.issn.1672-8505.2013.02.003" target="_blank" rel="noopener" data-page-node-id="grgw7RJTiz9zvKNlqE0pTA">https://www.xhuqk.com/xhdxxbzskb/article/doi/10.19642/j.issn.1672-8505.2013.02.003</a>
+</article>
+</div>
+
+<h2 class="sec" data-page-node-id="vbiv6iSfVPZiUNff8XVLNR">九、结语 <span class="principle-tag" data-page-node-id="JwAy02HVKcmmH807vPJQPs">回顾 <a class="principle-link" href="#core-C1" data-page-node-id="2wQtETPVSDH7ky6zAv05Yy">C1 选择性卸载</a>、<a class="principle-link" href="#core-C2" data-page-node-id="EbNbZlFEmWLfv9f8vs5RDj">C2 硬容量边界</a>、<a class="principle-link" href="#core-C3" data-page-node-id="6ZxyDPaaLtmqP02zYEqlAH">C3 可验证基线</a>、<a class="principle-link" href="#core-C4" data-page-node-id="LIgOl3BIfLcdJ0V8QEsNIE">C4 场信号与显式授权</a>、<a class="principle-link" href="#core-C5" data-page-node-id="solMF2W8pA2965VWbozscd">C5 维护制度化</a>、<a class="principle-link" href="#core-C6" data-page-node-id="0EGwvGYYUXfmYYwH9kNnqK">C6 组合结构与失效隔离</a></span></h2>
+<div class="card" data-page-node-id="6suZ7Ny95XWiEJtmxZB1TH">
+  <blockquote style="font-size:15.5px" data-page-node-id="OhvQlQwX5tP0tcL1P0jiBj">
+  都江堰说明，长期运行同时依赖选择性卸载、容量边界、可验证基线和维护制度。映射到 Harness 后，
+  C1 负责卸载质量，C2 约束容量，C3 提供验收基线，C4 分离排序与授权，C5 管理维护责任，C6 验证替换与隔离。
+  具体阈值和实现方式由项目数据决定。
+  </blockquote>
+</div>
+
+<h2 class="sec" id="appendix-principles" data-page-node-id="CSdadZFh3LIcnlfxPA1kzb">附录：启发 1–12 的论证与方法</h2>
+<div class="card" data-page-node-id="SnAb8wpTJjESPFGLn71TqE"><p data-page-node-id="iwKQ1c7HKbbgHAZGGJVajo">十二条启发只保存工程事实、作用机制、公式与适用边界；项目动作和验收条件以 C1–C6 为准。</p></div><details data-page-node-id="LwtBH5vzzOvoi1lvbHFy4L"><summary data-page-node-id="RMu4VPFDX2rGeyUxAim6B7">展开十二条方法卡片</summary>
+<section class="card pr" id="inspiration-1" data-page-node-id="KGIQY1SvraLO8ZY0qoJbex">
+  <div class="ph" data-page-node-id="JhxlqKqR7hkH1r4WKAMD74">
+    <div class="pn" data-page-node-id="48LehBCbmKWJWqbsrZ7TiB">启发 1</div>
+    <div data-page-node-id="05XLeZf0HNIJayPKFph0gA">
+      <h3 data-page-node-id="TBBuF3aGalkS7qRvjkIY2k">分沙比 &gt; 分流比</h3>
+      <div class="alias" data-page-node-id="GvJIvPg55bA5X1zg0CrpiI">归属主原则：<a href="#core-C1" data-page-node-id="Tvwq3TRcfhdwEccqAm8YBn">C1 选择性卸载</a> · 都江堰原型：分沙比 &gt; 分流比</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="CEqUerXO0fClnxiLguMBVL">
+    <div class="cell" data-page-node-id="aBOhb9Tze8Vs1ByhrGqNMp"><span class="lbl" data-page-node-id="QqqbMFEBUWFKIHl97GATRZ">工程事实</span><p data-page-node-id="xWBhU1PONpPhwUtOvOiYpD">1970–1973 资料给出外江分水 35.8–39.1 %、悬移质分沙 42.3–52.8 %；约 74 % 的卵石推移质来自 1975–1978 资料，不能当作同年配对。</p></div>
+    <div class="cell" data-page-node-id="kpCuXm2HXTReIKee8AgUzz"><span class="lbl" data-page-node-id="9FoA8q5hoD2ZVGbqcL5WfZ">作用机制</span><p data-page-node-id="jb99sWgwBzpRkEzUvXi6mO">分水与分沙是两个解耦的变量。都江堰的精髓不在分水，而在分沙比严格大于分流比。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="VUCeCiDzBybBCMV9W7M4sz"><span class="lbl" data-page-node-id="WeJx330aQs0hxVjSHGcDHW">形式化</span><code data-page-node-id="QjwFsLEYkPjLZBZYkGHhj1">κ = β_sed / β_water；悬移质无逐年配对数据，保守端点为 42.3/39.1≈1.08 至 52.8/35.8≈1.47。卵石约 1.98 来自另一时期；飞沙堰约 &lt;1.75 是上界，约 1.60 依赖 50% 分流比假设。</code></div>
+  <div class="fx" data-page-node-id="42sKjDx9MUocD5TwWsjvjt"><span class="lbl" data-page-node-id="TT4BTYu1CkZfTjci7OoakR">结论强度</span><p data-page-node-id="KIwydTcK12godwrtSJE8oO">中：分水、悬移质和卵石数据来自不同观测期；κ 仅作保守端点或分项示例。</p></div>
+  <div class="fx" data-page-node-id="r9GXvZtW56pbpoToQQqbPZ"><span class="lbl" data-page-node-id="VRza9rwDzjOL0CPi5byIWM">适用边界</span><p data-page-node-id="9rPKnFYtOEA2Jx6L14G2wl">只适用于承担选择性卸载职责且有害负载可标注的通道；其他通道不得套用 κ。</p></div>
+  <div class="ref" data-page-node-id="u7tvJhyZpc9fAyyanmTdB6">回到主原则：<a href="#core-C1" data-page-node-id="OyXzilLOXITVHPPLPFi4JU">C1 选择性卸载</a></div>
+</section>
+<section class="card pr" id="inspiration-2" data-page-node-id="hXuWv0PUi7i0ElFNy85cnf">
+  <div class="ph" data-page-node-id="En4GC0rbFlwY8c6bTUjMt6">
+    <div class="pn" data-page-node-id="s1xaFnbY4op2ogz2Np8t1f">启发 2</div>
+    <div data-page-node-id="U4j98dmgJyWurcLQEcTKJd">
+      <h3 data-page-node-id="6UQvyfV5L4RVhoMm5kLXVC">飞沙堰 728.25 m 是硬编码</h3>
+      <div class="alias" data-page-node-id="dZruSWJmdAmd9n9HWjk07V">归属主原则：<a href="#core-C2" data-page-node-id="J4rK7KL8mKQq7fOzbZoWE2">C2 硬容量边界</a> · 都江堰原型：飞沙堰 728.25 m 是硬编码</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="QNQraHBZFrifeVHLErNKeZ">
+    <div class="cell" data-page-node-id="6U38gGKY1HzEja8FnX1Lmv"><span class="lbl" data-page-node-id="edtxvyBFgpN1u8d7Ntv2NM">工程事实</span><p data-page-node-id="O9QxHWe6JkfwykxpoLU0Nw">飞沙堰堰顶高程 728.25 m。此处有两个不同的「两米」，不可混为一谈：一是堰体高出河床的结构高度（约 2 m，第一节数据表内记作 2.15 m），二是古训另立的规则——“堰顶只能高出内江卧铁 2 米”。</p></div>
+    <div class="cell" data-page-node-id="Glm9e9JqdM8nqACRju8zMS"><span class="lbl" data-page-node-id="kM9gZg4sfKH3UkPbs6l9Kt">作用机制</span><p data-page-node-id="tM1sE4sS5xQF2JiTnO0PBC">在被动几何模型中，溢流由高程触发；现实运行还受闸门、调度和维护制度影响，不能把模型触发器当作完整控制逻辑。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="8tu7EWycvpXI5HJC1OqUvS"><span class="lbl" data-page-node-id="ME5quzDhYL48NU1coEtN8G">形式化</span><code data-page-node-id="QdaIOjilL0Ci1CpWPs3bHB">q_spill = m·B·√(2g)·H^{3/2}，H = z_water − 728.25 m。以 B=240 m 为情景时，q=1 000 m³/s 对应 H≈1.81 m，q=2 000 对应 H≈2.88 m；这不是现场水位复算。</code></div>
+  <div class="fx" data-page-node-id="MaKYKnAuFfTR7GDWrQUuFE"><span class="lbl" data-page-node-id="MOC4oVTZqmtbKaHHUokoN7">结论强度</span><p data-page-node-id="cCbKAxePUKFBiMMQSW8lGj">中：堰顶高程有资料支持；堰宽口径未统一，流量—水头值属于公式情景。</p></div>
+  <div class="fx" data-page-node-id="d4XPJMF8NtVBjq1uAfzpM0"><span class="lbl" data-page-node-id="F7JuHUSoT1xoBENuTC2iTE">适用边界</span><p data-page-node-id="U9lfSt7DhHLWHGzwDV4qwX">几何关系只提供边界设计启发；具体容量、阈值和例外流程由项目验证。</p></div>
+  <div class="ref" data-page-node-id="2KteO6bO3rCsfusheY1zWP">回到主原则：<a href="#core-C2" data-page-node-id="TXsQl7cOSpnHOHJbVb83FU">C2 硬容量边界</a></div>
+</section>
+<section class="card pr" id="inspiration-3" data-page-node-id="Uf6EzCKHRbnWsnnDotcdg3">
+  <div class="ph" data-page-node-id="GnWEgTGn4phs6y8BIs2YvE">
+    <div class="pn" data-page-node-id="3cihQjH6mWaW3oG14flp4l">启发 3</div>
+    <div data-page-node-id="wYKINVRXYFGkegJkLRCwyK">
+      <h3 data-page-node-id="j8mq1jGthRRb38MkzBBgSi">堰流 Q ∝ H^1.5，不等于相对总负载超线性</h3>
+      <div class="alias" data-page-node-id="BKPo7bArriySwZiKGK4tEJ">归属主原则：<a href="#core-C1" data-page-node-id="GX8GLvUO0SDtLwnttoyUHN">C1 选择性卸载</a> · 都江堰原型：堰流 Q ∝ H^1.5，不等于相对总负载超线性</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="6UQEIBZ6TIhcS2zgYwggb9">
+    <div class="cell" data-page-node-id="sfjEHpenxUCXUbphweAEfo"><span class="lbl" data-page-node-id="PL4U4CTB2YJj0sblRE4KPE">工程事实</span><p data-page-node-id="DvO7KYgltKVwwzOMk18vYA">[5] 记载内江流量 &gt;500 m³/s 后飞沙堰开始泄流，1 000 m³/s 时分沙比 ≥80 %；书稿材料称 &gt;2 000 m³/s 时分沙比约 70 %、分流比 &gt;40 %。科普材料另称最高 98 %，但没有同断面配对数据。</p></div>
+    <div class="cell" data-page-node-id="B0erDTIMFfDITwOFhZuNoU"><span class="lbl" data-page-node-id="2PYkrVcJWhI2l7aAzW7hY0">作用机制</span><p data-page-node-id="4Qsr9FGQxG4gtsIfkCaxnK">宽顶堰关系只说明泄流量相对堰上水头满足 Q ∝ H^{3/2}；现有分沙比数据并未证明卸载量相对系统总负载超线性或单调增加。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="vlHGZJzsdcKHLcYugfGdHE"><span class="lbl" data-page-node-id="V2OU8RVLBGGfKSysUqiIYV">形式化</span><code data-page-node-id="pX9g69cqgCYvPPcR8rxCYF">Q_spill ∝ H^{3/2}；dQ/Q = 1.5·dH/H。这里的 Q 是堰泄流量，不能与系统总负载 Q_total 混用。</code></div>
+  <div class="fx" data-page-node-id="wBLjKQo5zoYcK8C16VZg0g"><span class="lbl" data-page-node-id="9vT6ncnFhbmXhe0eoTez5T">结论强度</span><p data-page-node-id="M6OddHAkAdGE7DtTR8YDJj">中：公式关系明确；现场分沙资料不足以验证系统级凸性或效率单调性。</p></div>
+  <div class="fx" data-page-node-id="pa1sIbWiGmM0t5izLqUIjD"><span class="lbl" data-page-node-id="Dvburf38Zcu0ZCCkO5Zwv1">适用边界</span><p data-page-node-id="WDVGece3AGfhNOpKpus7Et">只适用于承担选择性卸载职责且有害负载可标注的通道；其他通道不得套用 κ。</p></div>
+  <div class="ref" data-page-node-id="TPKQkTvCx7031IT2LHUBUe">回到主原则：<a href="#core-C1" data-page-node-id="KdTkwSRGMaFd9q1HqYq2Fx">C1 选择性卸载</a></div>
+</section>
+<section class="card pr" id="inspiration-4" data-page-node-id="jwsFylsoLX3eZiX3wEuswo">
+  <div class="ph" data-page-node-id="IaUSbJZn7RDhHXvBhKTV1q">
+    <div class="pn" data-page-node-id="1X0GaOmmSLt8f6GGeDKbWw">启发 4</div>
+    <div data-page-node-id="FfGjfMXe7rIwUMvEgYp7j1">
+      <h3 data-page-node-id="QWhGt5esVk7q0VDINhH5dh">宝瓶口 20.4 m</h3>
+      <div class="alias" data-page-node-id="aTxT7yCyksyYzVuEQ9lCQZ">归属主原则：<a href="#core-C2" data-page-node-id="fwpiegrKYckhLIOYiFiE6T">C2 硬容量边界</a> · 都江堰原型：宝瓶口 20.4 m</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="ZvyQcXfX4nZDmVeDzg8cI1">
+    <div class="cell" data-page-node-id="bds5psulpFwx223wkozDK9"><span class="lbl" data-page-node-id="09GoKiB3a1kltOkYYaJEKG">工程事实</span><p data-page-node-id="SogJOhznTYi0m9kwXk13A4">宝瓶口平均口宽 20.4 m；飞沙堰宽度资料有 150–200 m 与 240 m 两套口径。设计引水 480 m³/s，加大 530 m³/s。</p></div>
+    <div class="cell" data-page-node-id="qZnMxfBcZzvvaEMceK7imE"><span class="lbl" data-page-node-id="Zlxy5sDKSa8SnmNY7lLwtC">作用机制</span><p data-page-node-id="hbcYyi4qEfNVTxE5DxGenI">窄口提供确定性上限的设计启发。曼宁示例取 S=4.1‰、n=0.035、h≈5.5 m 得到约 480 m³/s，是参数命中而非独立验证；展示水深并非实测值。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="NazOPkH3vBzecXmcUTPvdV"><span class="lbl" data-page-node-id="sh3F37IEWWOKEfILRhWCJb">形式化</span><code data-page-node-id="iC44WXvFeHrS8FAYTwCsPH">窄口比 ρ = B_choke / B_spillway；按飞沙堰 150–240 m 的资料口径，ρ≈0.085–0.136。1/10 只是量级启发，不能直接作为项目规范。</code></div>
+  <div class="fx" data-page-node-id="TVsC8bbziqlPnC0rN3mC05"><span class="lbl" data-page-node-id="ixI8BFZj5xylQ6kkz8NZCD">结论强度</span><p data-page-node-id="53S0CazRYCycDtLeU8qdJH">中：宝瓶口平均宽度有资料支持；飞沙堰宽度存在时期和量测口径差异。</p></div>
+  <div class="fx" data-page-node-id="m8b9EJq03pVvqMX0u5wEAH"><span class="lbl" data-page-node-id="ScuRHjQOO98AA2528ISbZg">适用边界</span><p data-page-node-id="9S5Q8P9d9Ki9bTnhSt6zgZ">几何关系只提供边界设计启发；具体容量、阈值和例外流程由项目验证。</p></div>
+  <div class="ref" data-page-node-id="P4mCtC8sbo6NTQFHP5RBat">回到主原则：<a href="#core-C2" data-page-node-id="NgqeLjOdpz8TI9Fp0t58zG">C2 硬容量边界</a></div>
+</section>
+<section class="card pr" id="inspiration-5" data-page-node-id="tLh407em5v15rOEGLscPmE">
+  <div class="ph" data-page-node-id="qb2m03k2RFPPGnTkVazEfF">
+    <div class="pn" data-page-node-id="GUZNROBeUHx3V5GfYI3ya7">启发 5</div>
+    <div data-page-node-id="H7B5yEd2ugsZnlLeI2GCUe">
+      <h3 data-page-node-id="nHYoj1r2yuVPEPrz1nLEUd">壅水沉沙 · 凤栖窝天然沉沙池</h3>
+      <div class="alias" data-page-node-id="FGkyET5ql1zuiGE2eC9tXP">归属主原则：<a href="#core-C1" data-page-node-id="uvyH1havCA5HubbVj2tkyN">C1 选择性卸载</a> · 都江堰原型：壅水沉沙 · 凤栖窝天然沉沙池</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="Hga6UkzWYl7yK4sRJPar1V">
+    <div class="cell" data-page-node-id="MAUTiYLqt7NxiibWfCHlgm"><span class="lbl" data-page-node-id="w9WDEDGfR5NjiF7orzB5s4">工程事实</span><p data-page-node-id="Y9eONjutBH0xFlF2iF5yCa">宝瓶口束窄会形成壅水，泥沙集中沉于凤栖窝；鱼嘴至宝瓶口的距离资料约为 1 070–1 250 m，起讫定义尚需统一。</p></div>
+    <div class="cell" data-page-node-id="CD2cACvKIebfzoSS2HpCiv"><span class="lbl" data-page-node-id="fFYw2qb9g0LUrJnqKL0Xhw">作用机制</span><p data-page-node-id="ZAoeTu263zS0lTjVi7UHJG">窄口不只是限流。它抬高上游水位，给飞沙堰提供水头（H）去排沙，并制造低流速区让泥沙定点沉淀——把“无处不淤”变成“集中在一处淤”。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="jYOVtCrHo3LjhT9AVu43yW"><span class="lbl" data-page-node-id="FXx4nQCC24BpdaTZY81zFz">形式化</span><code data-page-node-id="oLFqxSla3QbpXq0ZxrBgTE">壅水 → 局部流速 v↓ → 推移质输沙率 gb ∝ (τ − τc)^{3/2} 骤降 → 定点落淤。</code></div>
+  <div class="fx" data-page-node-id="4a2Wx3Mu7DzFWx8pgldKr8"><span class="lbl" data-page-node-id="T60ORwz1W7U6atPv90jLNr">结论强度</span><p data-page-node-id="9NyNAREVSjBdTgeJYbEpFX">低：机制具有水力学依据，但距离口径和该断面的成套实测资料仍待补。</p></div>
+  <div class="fx" data-page-node-id="WnWTAr866AFwMkcfyVZjGc"><span class="lbl" data-page-node-id="L3aVXP1kUZ0HUW3ipPStFE">适用边界</span><p data-page-node-id="9qGF27bvCkv83fgvkjkroW">只适用于承担选择性卸载职责且有害负载可标注的通道；其他通道不得套用 κ。</p></div>
+  <div class="ref" data-page-node-id="zqcEA8J3kCHYHXCRJHQRDm">回到主原则：<a href="#core-C1" data-page-node-id="6TZmsTPrQeGlDSnNMvgKpH">C1 选择性卸载</a></div>
+</section>
+<section class="card pr" id="inspiration-6" data-page-node-id="kHMgSyYQYl8xfzmGd5n047">
+  <div class="ph" data-page-node-id="bTIXd22u8GVOgFEyn9vV0B">
+    <div class="pn" data-page-node-id="Yl6Oqy2hxPJ6I3uAvj5vwl">启发 6</div>
+    <div data-page-node-id="0GVru6TiEbWKm4r4F2Fz8X">
+      <h3 data-page-node-id="1jMXkuu5oBsaH0yGNVkree">弯道环流代替筛子</h3>
+      <div class="alias" data-page-node-id="Eeip1DvSB1Z1pdt0D2Uauj">归属主原则：<a href="#core-C4" data-page-node-id="a1S2qZuvuWwBuxrllfn1ZE">C4 场信号与显式授权</a> · 都江堰原型：弯道环流代替筛子</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="8CPDAyCeA8BwYUxX2B0cGj">
+    <div class="cell" data-page-node-id="RTphcLF702AxqAnyQPTLwv"><span class="lbl" data-page-node-id="ryGfCSOHzrB7cHzt9ErsbC">工程事实</span><p data-page-node-id="LWYjfh0NMqViSYkajM2z00">鱼嘴位于曲率半径 R=850 m 的弯道上；R/B ≈ 2.7（B≈310 m），属强曲率，螺旋流充分发育。表层清水走凹岸进宝瓶口，底层浑水走凸岸被飞沙堰推出。</p></div>
+    <div class="cell" data-page-node-id="4pqJW2VrCaY2EbSCvTERUV"><span class="lbl" data-page-node-id="Q3bqOjRwL7LuzWsK9qzV9c">作用机制</span><p data-page-node-id="MtPY9835vlwtBJwYfgDs6S">没有筛子在逐颗判定沙粒。离心力场可解释部分空间分离；映射到软件仍需权重、阈值和三层路由规则，不能由场消灭漏判与冲突。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="9Fq3GWIm2a9uklPO53J68y"><span class="lbl" data-page-node-id="hB2jIuvDSotoi2oZ65WiSQ">形式化</span><code data-page-node-id="ngSpI7yWwHCjUSJmtX7C7l">J⊥ = v²/(gR)。实算：v=3 m/s 时 J⊥=1.08×10⁻³，按 70 m 宽估算横向水位差 7.6 cm；v=5 m/s 时约 21 cm。该关系解释水力情景，不直接规定软件参数。</code></div>
+  <div class="fx" data-page-node-id="5kBDVvcmhUdMzd8TyrWsV6"><span class="lbl" data-page-node-id="3oNbFUYTcs4BqHxyGiGtMP">结论强度</span><p data-page-node-id="P8Oh9bRAqA1OEovehc7l4h">中：标准关系与 R=850 m 有资料支持；流速和宽度是情景输入，不是同断面校核。</p></div>
+  <div class="fx" data-page-node-id="5P4biih6zVOPExz8k7ijP7"><span class="lbl" data-page-node-id="6m5AheFpMgBPUEMcHMjHLz">适用边界</span><p data-page-node-id="uR7FsyBizlTD9rEXIj2vOM">连续信号只用于排序与审查，不能授权，也不能消除规则、漏判和冲突。</p></div>
+  <div class="ref" data-page-node-id="QEQT1wojmph9uQgdKAdkiO">回到主原则：<a href="#core-C4" data-page-node-id="e8YuhcLoZsEIGTSn8rmBzP">C4 场信号与显式授权</a></div>
+</section>
+<section class="card pr" id="inspiration-7" data-page-node-id="maIBqT7vGSRsvxTDPxH47N">
+  <div class="ph" data-page-node-id="k2QF9SD0VFEZUitJOGtjtS">
+    <div class="pn" data-page-node-id="980PDG2MZntcdx4EpuFU8O">启发 7</div>
+    <div data-page-node-id="yZf5aCnrOt0zAX1GX8gk4E">
+      <h3 data-page-node-id="rQzBX7Gv5rI5sBzS87UBOq">卧铁 = 物理 setpoint</h3>
+      <div class="alias" data-page-node-id="6066De8ZmnjetNDWFo9qxV">归属主原则：<a href="#core-C3" data-page-node-id="OZr87kMzVLwwTDMORyOn8n">C3 可验证基线</a> · 都江堰原型：卧铁 = 物理 setpoint</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="NAnDPGjmCzphundLYXHHCJ">
+    <div class="cell" data-page-node-id="RePhtp9BJOn7vrwO33Enft"><span class="lbl" data-page-node-id="ujhfALs4g4cFbQZO8Vb1oY">工程事实</span><p data-page-node-id="RXKPt5RQxVSNpdUihL99Je">四根卧铁埋在内江凤栖窝河床下，顶部距河床表面 1.8 m；岁修清淤必须“淘至卧铁见”。铸于 1576 / 1864 / 1927 / 1994 年，跨越 400 余年沿用同一物理基准。</p></div>
+    <div class="cell" data-page-node-id="zDznugOiNdRZK5Jjlypkjr"><span class="lbl" data-page-node-id="ljpDqwZVaOcBZ9BjLX5uCJ">作用机制</span><p data-page-node-id="smJ6bPspjd5SBIwca99wPh">卧铁提供可观察的物理基准；它能约束维护验收，但不能替代完整的运行规则、权限边界和独立测量。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="kZprRMBHeGhaML1iUFHhAr"><span class="lbl" data-page-node-id="0QDfvNyLAAa0vzd5pXBV5C">形式化</span><code data-page-node-id="OB6d7ZSHR9BUlKM0itWWlG">深淘滩 ⇔ Σ(年内沉积) = Σ(年内冲刷) ⇔ 河床纵剖面收敛到平衡断面；卧铁顶 = 平衡断面的物理编码。</code></div>
+  <div class="fx" data-page-node-id="Bh1Cxp00A7g3gXh0rGW4Ln"><span class="lbl" data-page-node-id="vACgvyT8BnqMcW8rpr6EEE">结论强度</span><p data-page-node-id="dELTrMdGPbV8ElJBA31OOA">中：卧铁与维护基准有多处资料支持；平衡表达是机制抽象，不是现场守恒率定。</p></div>
+  <div class="fx" data-page-node-id="M4cScMqCurqlmYfRBFW109"><span class="lbl" data-page-node-id="Kz3FwGu5rFgGrVzFFrrdUv">适用边界</span><p data-page-node-id="0EB0QN6guCu1TwtpiBEMNr">可重算基线不限定为事件流、Merkle 根或 replay，证据结构按审计需求选择。</p></div>
+  <div class="ref" data-page-node-id="rC118oRNDbQZ75RnU7oqGj">回到主原则：<a href="#core-C3" data-page-node-id="UhmePd0ECdKt4pIwp8CIQ6">C3 可验证基线</a></div>
+</section>
+<section class="card pr" id="inspiration-8" data-page-node-id="kOOEtOoTGES73FGD48yUiy">
+  <div class="ph" data-page-node-id="OHOjVj173JjBENYUk2WaTa">
+    <div class="pn" data-page-node-id="BoIQF82EvmAZxlWPuLsfAJ">启发 8</div>
+    <div data-page-node-id="7OZN1j5vpeNqLC1byhGAHx">
+      <h3 data-page-node-id="g2rubdjxDuzHnnJ2pCeX2T">低作堰</h3>
+      <div class="alias" data-page-node-id="qiAmR9I8kUjAYBOcAWbugD">归属主原则：<a href="#core-C2" data-page-node-id="sBLU2ejZlt7FecKGgUDlf4">C2 硬容量边界</a> · 都江堰原型：低作堰</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="kyvbhghRYIVnaLgiWC5Khq">
+    <div class="cell" data-page-node-id="0K8HL29flKbiyK3z77Bzvc"><span class="lbl" data-page-node-id="ffe3TahLStMu1J5XCmouOM">工程事实</span><p data-page-node-id="ZfW6kJNWBzitSfWiG9eyK5">六字诀明确“低作堰”：飞沙堰修筑宜低（约 2 m）。古籍直斥加高堰体的做法：“切忌用高作堰的方式在枯水季节增加宝瓶口的进水，那是一种急功近利的做法，在洪水季节会造成严重淤积，使工程逐渐废弃。”</p></div>
+    <div class="cell" data-page-node-id="RDDmsNENE1yQvkPjvuOLZh"><span class="lbl" data-page-node-id="Dthhahj9bo4LogHPiAK6rl">作用机制</span><p data-page-node-id="Kaj92aUhZ6bYRAWsBqMxtH">加高堰体可在枯季增加引水，却可能降低汛期排沙能力并抬高后续维护成本。软件护栏也需要分别记录短期收益和延迟风险。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="y0rnfB11LFCFLzrPIfPmTf"><span class="lbl" data-page-node-id="muKuqgRu9gZ0zn5EEoqlY9">形式化</span><code data-page-node-id="2nAEfk0ldDu8TGXtK3yLX3">记 Δ = 护栏阈值。治理约束：短期 KPI 不得单独触发放宽；任何变更都要经过评审、留痕和回滚验证。</code></div>
+  <div class="fx" data-page-node-id="hzflT118jMpeOCJ30rvnyv"><span class="lbl" data-page-node-id="1FYMpubeVlYhJijfcNPkO3">结论强度</span><p data-page-node-id="XizFQBTJj5hn27DHdBtXaJ">中：低作堰有历史规则支持；软件阈值治理属于可迁移方案，需由项目验证。</p></div>
+  <div class="fx" data-page-node-id="znzkG3WlGBvN0QnHZJED2R"><span class="lbl" data-page-node-id="YaGCFdkbXjrmeExyqr6geb">适用边界</span><p data-page-node-id="hlXgHtRE61Ci6M9nEkWigo">几何关系只提供边界设计启发；具体容量、阈值和例外流程由项目验证。</p></div>
+  <div class="ref" data-page-node-id="HsOwScpN0slqGrQvS947Dd">回到主原则：<a href="#core-C2" data-page-node-id="Yf6ChETO8a6Fd7DiZEUpB8">C2 硬容量边界</a></div>
+</section>
+<section class="card pr" id="inspiration-9" data-page-node-id="VYG20QCEpCF1kLxtuMt5ti">
+  <div class="ph" data-page-node-id="W6bbI12Dn4herTgIkuJZ8P">
+    <div class="pn" data-page-node-id="unxUdLiFy6u4VtLAAUkDQ4">启发 9</div>
+    <div data-page-node-id="kJ3qHUffBR82SgpbvH3ir8">
+      <h3 data-page-node-id="htE2AfOl5IgtFRIxZSqwPW">岁修</h3>
+      <div class="alias" data-page-node-id="74Wn63cwAbhBLcQ8Ht7mWM">归属主原则：<a href="#core-C5" data-page-node-id="SjTItSP2DoRRZpaGe7RFu9">C5 维护制度化</a> · 都江堰原型：岁修</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="PjGQ9xYDUXHTLzuXmKE9OK">
+    <div class="cell" data-page-node-id="Zn91ZedMsGB1cKVTwHHOLi"><span class="lbl" data-page-node-id="Grw0KL7l8kS7qTGpWpb2EW">工程事实</span><p data-page-node-id="RIRzOJ1ebbbWTYQtXg3xie">宋代起岁修逐步制度化：资料记载冬十月初断流开工、春三月底完工供水，清道光后内外江均纳入岁修。史料也记录了战乱期管理失序、工程功能受损，以及秩序恢复后重启治理的案例。清代资料记载岁修年换竹笼 1.3 万余条、竹料 170 多万斤。</p></div>
+    <div class="cell" data-page-node-id="JKRwFa8EUQDPO3a5iJB3nH"><span class="lbl" data-page-node-id="bvcMSiujheztB674G61b3b">作用机制</span><p data-page-node-id="fsXgJxYMA76AycFgQtQOqN">都江堰依靠长期维护制度运行，但不能据存在年修制度推断每年都完整执行；战乱期间曾因失修失去功能。现代调度会改变维护频率，制度仍需明确责任与验收。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="vgfH6NUh8cA1YnZxc7gFBs"><span class="lbl" data-page-node-id="7SBTxaBOMMNOPWfi8ZtIjs">形式化</span><code data-page-node-id="a7jy3AbdVjkLIMs6GLsHbL">维护策略 M = {trigger, owner, deadline/SLO, evidence, failure_action}；按时维护的项目可再用累计漂移预算确定周期 T。</code></div>
+  <div class="fx" data-page-node-id="TvnqsXVyt1Cqsg64mqW1B9"><span class="lbl" data-page-node-id="Hal4RylWATXjVENWTeDgEX">结论强度</span><p data-page-node-id="ahyv7pk24JBvfayETjBaac">中：岁修制度及中断后果有历史资料支持；软件触发策略属于项目方案。</p></div>
+  <div class="fx" data-page-node-id="Rmc7Nq2EbVKZXTZYlY44KO"><span class="lbl" data-page-node-id="WZNmXt7l3PwArlrtV4C6wE">适用边界</span><p data-page-node-id="bxLl36DJKJMyJNQDMOoSwU">维护制度可以迁移，维护周期和停机方式不能从都江堰直接照搬。</p></div>
+  <div class="ref" data-page-node-id="jUM3A8oZx6Vqrqf5YdgaHX">回到主原则：<a href="#core-C5" data-page-node-id="AWcWJFuCQugqdlv9aOvtzq">C5 维护制度化</a></div>
+</section>
+<section class="card pr" id="inspiration-10" data-page-node-id="2iwRbmENdoszRvMOH3eRxp">
+  <div class="ph" data-page-node-id="IlAA1SlS9DEmSlgbKZgHTb">
+    <div class="pn" data-page-node-id="feMQDsBhhqqrXzy74zpFoq">启发 10</div>
+    <div data-page-node-id="KARhQSHFV6AbuoDqqUlbqk">
+      <h3 data-page-node-id="W12FnXP1KRN2aRnqk0QNJT">无坝引水 · 平面几何 vs 立体几何</h3>
+      <div class="alias" data-page-node-id="FOvv60EHYlLiNeoe2uU62x">归属主原则：<a href="#core-C6" data-page-node-id="QrjWG93gidQL6QcFYe9GDR">C6 组合结构与失效隔离</a> · 都江堰原型：无坝引水 · 平面几何 vs 立体几何</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="QFqupn2ADnPAExhZ0Fy9XZ">
+    <div class="cell" data-page-node-id="im9meIGAP4YVh01do7lp9R"><span class="lbl" data-page-node-id="bI3TOW4aP2UWZavRVvbyVQ">工程事实</span><p data-page-node-id="J06Y7YgIPa6W5HfhJbkZsB">都江堰的鱼嘴、飞沙堰、离堆都与岷江两岸“平行”，现代水利工程则与河流“垂直”。代价是可控性下降：[5] 明言“分四六”只是历史概念，1965–1979 汛期内江分流比在 39.6 %–62.2 % 间波动，并非定值。</p></div>
+    <div class="cell" data-page-node-id="pFjJssC1Di2ELEQWOjicOc"><span class="lbl" data-page-node-id="HOSTNYvdPcOnZK05tdz1EU">作用机制</span><p data-page-node-id="Lrd35KU7yIo8Aqto1NsypY">平面分流减少了主河道垂直拦截，但不等于没有故障或运行依赖。其分流比会随流量、河床和调度变化，组合结构的鲁棒性仍需用历史失效与恢复记录评价。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="tRZvUrNiygFiwsB5JzAveS"><span class="lbl" data-page-node-id="5tBPTESiMrZtXt4PwAU56r">形式化</span><code data-page-node-id="oHvzLx78N5DUi9fxiz6H9W">鲁棒性指标 R_rob = Pr[系统功能正常 | 参数集 θ ∈ Θ]；Θ 的扰动范围由项目基线和风险分析确定，不预设 ±20%。</code></div>
+  <div class="fx" data-page-node-id="Q8awDON7HUNcRbEZakxcPL"><span class="lbl" data-page-node-id="0fQ6Btm3VFub0bDQaQRhDx">结论强度</span><p data-page-node-id="ro0eJM3LP0u9a057mt1U2Q">中：分流波动有观测资料；软件扰动范围与鲁棒性指标属于项目方案。</p></div>
+  <div class="fx" data-page-node-id="aRs83ELWYSRIr84nAGaRwa"><span class="lbl" data-page-node-id="HGsEi5HNUNP4psBhUOlrAH">适用边界</span><p data-page-node-id="4xkBTMWnTbdtjWxG7c5eke">组合结构不自动带来鲁棒性；替换时间和故障范围仍需演练。</p></div>
+  <div class="ref" data-page-node-id="3IRVrQ4MuumCEkdlgU734c">回到主原则：<a href="#core-C6" data-page-node-id="z7vUmd13LDjG1619gCnHOe">C6 组合结构与失效隔离</a></div>
+</section>
+<section class="card pr" id="inspiration-11" data-page-node-id="4UUf9RQ6FHnATbQ76yahX6">
+  <div class="ph" data-page-node-id="rRI2VhDjDdi5YChxp0vDx0">
+    <div class="pn" data-page-node-id="N9MyHgm7myBIBilJFNHoYD">启发 11</div>
+    <div data-page-node-id="oGICRy8OiKnN4rX9FqYzhH">
+      <h3 data-page-node-id="37XaWKvY8o8Y2tGWsWz0mr">外江闸 1974 / 紫坪铺 2006</h3>
+      <div class="alias" data-page-node-id="0AFeV5HgWVnhXHa0HIveU1">归属主原则：<a href="#core-C6" data-page-node-id="gHM7YVjMi5C2oPEbrEvqFZ">C6 组合结构与失效隔离</a> · 都江堰原型：外江闸 1974 / 紫坪铺 2006</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="7ZaPBWb85O7xFfaxfszNRL">
+    <div class="cell" data-page-node-id="1Vpn8nHNCJsfBYBDGppia9"><span class="lbl" data-page-node-id="MYWtVR2wNbEXJdTHx36GuF">工程事实</span><p data-page-node-id="i3yBFGuODg5S3UpCHHfB86">1974 年外江闸建成，内江分水由自然调节变人工调节：春季可达 75 %、汛期仅 37.5 %（Sun et al. 原型资料）。紫坪铺 2006 投运改善部分供水指标，同时改变水沙情势；这些数字的原始页码和统计口径仍需逐项补齐。</p></div>
+    <div class="cell" data-page-node-id="UJBA2Oh2VVr4ecZJ7q5Ern"><span class="lbl" data-page-node-id="qG2wAj2P8TmFnQgPZLp8CL">作用机制</span><p data-page-node-id="TsWpRAWFzeLtMECRKgmsGO">两类控制作用不同：<b data-page-node-id="StQFePTTRmuq9OJLOKG3Iv">外江闸接管部分分水决策</b>，紫坪铺则改变上游来水与来沙分布。现有资料只给出飞沙堰在 &gt;500 m³/s 时启动、1 000 m³/s 和 &gt;2 000 m³/s 两个效率点，不能据此断言削峰改善或保持了排沙效果。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="ikGm1Zy7va8NBoOQc7bbqK"><span class="lbl" data-page-node-id="661bGr4SK3nTVVHKOAbZaR">形式化</span><code data-page-node-id="OXdHiv0UgiKW4utUJPwnnY">控制点评估 = 决策权变化 + 输入分布变化 + 故障影响范围。三项分别测量；仅凭两个流量点不能建立“低流量高效率区”。</code></div>
+  <div class="fx" data-page-node-id="ny6uSsCegzDMiIFHpG20xc"><span class="lbl" data-page-node-id="6GGXxpyrd9Ws7kHRWdBw8y">结论强度</span><p data-page-node-id="nD6SvtJ1o3hM4mm8hysYTx">低：闸门和水库作用方向有资料支持；具体供水、排沙收益仍缺同口径对照数据。</p></div>
+  <div class="fx" data-page-node-id="npRA86pjnwGHJM0yaYq1ee"><span class="lbl" data-page-node-id="vVXYTgfs9Wt86AJTnDEnNR">适用边界</span><p data-page-node-id="ROm3W1LAiDKQAvH3nvkFqM">组合结构不自动带来鲁棒性；替换时间和故障范围仍需演练。</p></div>
+  <div class="ref" data-page-node-id="pVoGCqB8q7snWNWG8TyMGt">回到主原则：<a href="#core-C6" data-page-node-id="TI1DGiOoaeDHZpdAHXA5K6">C6 组合结构与失效隔离</a></div>
+</section>
+<section class="card pr" id="inspiration-12" data-page-node-id="SMOKva4dMuGXSmJ18KEOuo">
+  <div class="ph" data-page-node-id="bfp5ve5aH9R0wHXhSgEKxx">
+    <div class="pn" data-page-node-id="GcWGOlwQovXfrD1QB5ab9s">启发 12</div>
+    <div data-page-node-id="wqDBgQTKfx936zfNblGNYk">
+      <h3 data-page-node-id="DYE41DCcDdUzH9H1TEdEtN">六字诀 · 八字格言 · 治水三字经（60 字）· 水则</h3>
+      <div class="alias" data-page-node-id="FfCQnwLloEIIMwItJoLkoe">归属主原则：<a href="#core-C3" data-page-node-id="MDP6WHv6pe2dAZtUTxlcxR">C3 可验证基线</a> · 都江堰原型：六字诀 · 八字格言 · 治水三字经（60 字）· 水则</div>
+    </div>
+  </div>
+  <div class="grid" data-page-node-id="x29SFSx1hx4Q3Shhnsr8GE">
+    <div class="cell" data-page-node-id="vlhyEhrDrjSEQokgzeSEcB"><span class="lbl" data-page-node-id="eBYA8MLOrIWs0N74Bg3Nzj">工程事实</span><p data-page-node-id="uzkZzUDKRUPKrdhWI52c8p">六字诀“深淘滩低作堰”；八字格言“遇弯截角逢正抽心”“乘势利导因时制宜”；治水三字经全文仅 60 字，其中“水画符，铁桩见”明确要求：宝瓶口岩壁水则要刻画清楚，淘滩要挖到卧铁现。</p></div>
+    <div class="cell" data-page-node-id="09k0F02aOaBO99pnI0RQnk"><span class="lbl" data-page-node-id="0vj69STCA2WJYnlKk09WhG">作用机制</span><p data-page-node-id="jOrDWfICiA5Rs42mWwOuTZ">短口诀便于复述，水则和卧铁又提供了观测标尺；两者结合比只有口号更容易检查。历史文本的传播范围和执行连续性仍需另证。</p></div>
+  </div>
+  <div class="fx" data-page-node-id="Cww9f2tWSTJYGgJQzVC7Sk"><span class="lbl" data-page-node-id="ipFqS8J50ld7CC7GU8UMCF">形式化</span><code data-page-node-id="1zB03MS0FW1PCrRwzmu77K">规范有效性 ≈ 可复述率 × 可验证率。水则十则制：堰底以 4 则为度、堰顶以 6 则为准 —— 规范直接给出可执行的数值判据。</code></div>
+  <div class="fx" data-page-node-id="KfTj90a2fd4IUjwAeZQuGM"><span class="lbl" data-page-node-id="26Ifn1mzdxwDEDkII4WFTv">结论强度</span><p data-page-node-id="qlCoO0utfK2Yh6ZmPYOMrC">中：口诀和水则有文献记录；传播范围、执行连续性及软件映射仍需另证。</p></div>
+  <div class="fx" data-page-node-id="p02W6N0TqqO0SC1piVi51N"><span class="lbl" data-page-node-id="zi1K7HAvXt34P17ywTwxKG">适用边界</span><p data-page-node-id="q163qTnUE5H74BERlqbq7e">可重算基线不限定为事件流、Merkle 根或 replay，证据结构按审计需求选择。</p></div>
+  <div class="ref" data-page-node-id="16pRz7cEOGSUaIOTpHIwLl">回到主原则：<a href="#core-C3" data-page-node-id="GffAzGg80p4cPxW5hQa4Vr">C3 可验证基线</a></div>
+</section></details>
+
+</main>
+<footer data-page-node-id="ipJFe1CMSEmRXoAXlSmcej">
+  由 WorkBuddy（code-as-action）生成 · 报告文件：output/text/都江堰_Harness工程设计原则.html · 2026-09-04<br data-page-node-id="133S6Nk8SAPBbEOybCZ0Xd">
+  派生量由 analyze.py 实算；原文抓取存于 output/text/raw_*.txt；证据摘要存于 facts_digest.txt<br data-page-node-id="zh4d8toYMjbLytT7vnDGf8">
+  验证记录：已完成自包含、标签平衡、语法和关键数值检查；用户提供桌面截图并确认两幅图的视觉效果。当前没有自动化本地浏览器通道，多视口像素检查未执行。
+</footer>
+</body>
+</html>

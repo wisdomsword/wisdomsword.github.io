@@ -1,0 +1,24 @@
+title: Wisdomsword's Tech Blog
+description: Tech Thinking
+theme: minima
+author: wisdomsword
+url: "https://wisdomsword.github.io"
+baseurl: ""            # let it null
+
+plugins:
+  - jekyll-feed        # gen /feed.xml
+  - jekyll-sitemap     # gen /sitemap.xml
+  - jekyll-seo-tag     # gen meta tags
+  - jekyll-paginate    # pages
+# blog's article lint：/2026/09/07/title
+permalink: /:year/:month/:day/:title/
+
+paginate: 20
+
+sass:
+  quiet_deps: true          # 静默来自主题/依赖的警告
+  silence_deprecations:     # 按类型屏蔽
+    - color-functions
+    - global-builtin
+    - import
+    - slash-div
