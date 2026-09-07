@@ -1,0 +1,218 @@
+---
+# Custom home layout.
+#
+# Everything below is generated from site data: drop a new .md or .html file
+# into _posts and it shows up here. No edits to this page required.
+#
+# Optional front matter (all have sane defaults):
+#   hero_kicker / hero_title / hero_subtitle
+#   hero_primary / hero_primary_href / hero_secondary / hero_secondary_href
+#   show_posts_section / show_tags_section / show_about_section
+#   posts_limit          cap the number of cards (default: all)
+#   about_title / about / about_links_title
+#
+# Per-post front matter that improves the card (all optional):
+#   description   card blurb; otherwise the first <p> of the post is used
+#   categories    first entry becomes the chip
+#   tags          up to 4 shown
+#   lang          e.g. "zh-CN"; shows a language badge when not English
+---
+
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: 'en' }}">
+
+  {%- include head.html -%}
+
+  <body>
+    {%- include header.html -%}
+
+    <main class="page-content home-page" aria-label="Content">
+      <div class="home">
+
+        {%- comment -%} ==================== hero ==================== {%- endcomment -%}
+        {%- assign hero_kicker          = page.hero_kicker   | default: 'AI · Systems · Engineering' -%}
+        {%- assign hero_title           = page.hero_title    | default: site.title | escape -%}
+        {%- assign hero_subtitle        = page.hero_subtitle | default: site.description | escape -%}
+        {%- assign hero_primary_label   = page.hero_primary  | default: 'Read the latest' -%}
+        {%- assign hero_primary_href    = page.hero_primary_href   | default: '#posts' -%}
+        {%- assign hero_second_label    = page.hero_secondary      | default: 'Subscribe via RSS' -%}
+        {%- assign hero_second_href     = page.hero_secondary_href | default: '/feed.xml' -%}
+        {%- assign latest = site.posts | first -%}
+        {%- assign n_posts = site.posts | size -%}
+        {%- assign n_cats  = site.categories | size -%}
+        {%- assign n_tags  = site.tags | size -%}
+
+        <section class="hero" aria-label="Site intro">
+          <div class="hero-inner">
+            <p class="hero-kicker">{{ hero_kicker }}</p>
+            <h1>{{ hero_title }}</h1>
+            <p class="lede">{{ hero_subtitle }}</p>
+            <div class="cta">
+              <a class="btn btn-primary" href="{{ hero_primary_href | relative_url }}">{{ hero_primary_label }}</a>
+              <a class="btn btn-ghost"   href="{{ hero_second_href | relative_url }}">{{ hero_second_label }}</a>
+            </div>
+            <div class="meta">
+              <span><b>{{ n_posts }}</b> {% if n_posts == 1 %}post{% else %}posts{% endif %}</span>
+              <span><b>{{ n_cats }}</b> {% if n_cats == 1 %}category{% else %}categories{% endif %}</span>
+              <span><b>{{ n_tags }}</b> {% if n_tags == 1 %}tag{% else %}tags{% endif %}</span>
+              {%- if latest -%}
+              <span>Updated <b>{{ latest.date | date: '%Y-%m-%d' }}</b></span>
+              {%- endif -%}
+            </div>
+          </div>
+        </section>
+
+        {{ content }}
+
+        {%- comment -%} ==================== latest posts ==================== {%- endcomment -%}
+        {%- assign show_posts = page.show_posts_section | default: true -%}
+        {%- if show_posts -%}
+        <section class="section" id="posts" aria-labelledby="posts-h">
+          <div class="section-head">
+            <h2 id="posts-h">Latest posts</h2>
+            <a class="more" href="{{ '/feed.xml' | relative_url }}">Subscribe via RSS →</a>
+          </div>
+
+          {%- if site.posts and site.posts.size > 0 -%}
+          {%- assign posts_limit = page.posts_limit | default: 1000 -%}
+          <div class="post-grid">
+            {%- for post in site.posts limit: posts_limit -%}
+
+              {%- comment -%} 1. title: front matter, else the <title> of a bare HTML post.
+                     A title is treated as filename-derived (and therefore replaceable)
+                     when the post carries no categories/tags, or when it still has
+                     the underscores of the source filename. {%- endcomment -%}
+              {%- assign card_title = post.title -%}
+              {%- assign n_cats_post = post.categories | size -%}
+              {%- assign n_tags_post = post.tags | size -%}
+              {%- assign meta_count = n_cats_post | plus: n_tags_post -%}
+              {%- assign title_parts = post.content | split: '<title>' -%}
+              {%- if title_parts.size > 1 -%}
+                {%- assign title_inner = title_parts[1] | split: '</title>' | first | strip -%}
+                {%- if title_inner != '' -%}
+                  {%- if meta_count == 0 or card_title contains '_' -%}
+                    {%- assign card_title = title_inner -%}
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endif -%}
+
+              {%- comment -%} 2. description: front matter, else first <p> of the rendered post {%- endcomment -%}
+              {%- assign card_desc = post.description | default: '' -%}
+              {%- comment -%} a description that just repeats the title is not a description {%- endcomment -%}
+              {%- if card_desc == card_title -%}{%- assign card_desc = '' -%}{%- endif -%}
+              {%- if card_desc == '' -%}
+                {%- assign para_parts = post.content | split: '<p' -%}
+                {%- if para_parts.size > 1 -%}
+                  {%- assign para_raw  = para_parts[1] | split: '</p>' | first -%}
+                  {%- assign para_bits = para_raw | split: '>' -%}
+                  {%- assign para_text = para_bits | slice: 1, 500 | join: '>' | strip_html | normalize_whitespace -%}
+                  {%- if para_text.size > 30 -%}{%- assign card_desc = para_text -%}{%- endif -%}
+                {%- endif -%}
+              {%- endif -%}
+
+              {%- comment -%} 3. language: front matter `lang`, else a CJK heuristic on the title {%- endcomment -%}
+              {%- assign post_lang = post.lang | default: nil -%}
+              {%- if post_lang == nil -%}
+                {%- assign cjk = '的一是不了人我在有他这为之大来以个中上们到说国和地也子时道出而要于就下得可你年生自会那后能对着事其里所去行过家十用发天如然作方成者多日都三小军二无同么经法当起与好看学进种将还分此心前面又定见只主没公从' | split: '' -%}
+                {%- for c in cjk -%}
+                  {%- if card_title contains c -%}{%- assign post_lang = 'zh-CN' -%}{%- break -%}{%- endif -%}
+                {%- endfor -%}
+              {%- endif -%}
+
+              {%- assign primary_cat = post.categories | first -%}
+
+              <a class="post-card {% if forloop.first %}featured{% endif %}" href="{{ post.url | relative_url }}">
+                <div class="meta-row">
+                  <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: '%Y-%m-%d' }}</time>
+                  {%- if primary_cat -%}
+                  <span class="dot" aria-hidden="true"></span>
+                  <span class="chip">{{ primary_cat }}</span>
+                  {%- endif -%}
+                  {%- if post_lang != nil and post_lang != 'en' and post_lang != 'en-US' and post_lang != 'en-GB' -%}
+                    {%- assign lang_label = post_lang -%}
+                    {%- if post_lang contains 'zh' -%}{%- assign lang_label = '中文' -%}{%- endif -%}
+                    {%- if post_lang contains 'ja' -%}{%- assign lang_label = '日本語' -%}{%- endif -%}
+                    {%- if post_lang contains 'ko' -%}{%- assign lang_label = '한국어' -%}{%- endif -%}
+                  <span class="lang-badge">{{ lang_label }}</span>
+                  {%- endif -%}
+                </div>
+                <h3>{{ card_title | escape }}</h3>
+                {%- if card_desc != '' -%}
+                <p class="desc">{{ card_desc | truncate: 180 }}</p>
+                {%- endif -%}
+                {%- if post.tags and post.tags.size > 0 -%}
+                <div class="tags">
+                  {%- for t in post.tags limit: 4 -%}
+                  <span class="tag">#{{ t }}</span>
+                  {%- endfor -%}
+                </div>
+                {%- endif -%}
+                <span class="read-more">Read more</span>
+              </a>
+            {%- endfor -%}
+          </div>
+          {%- else -%}
+          <p class="empty">No posts yet.</p>
+          {%- endif -%}
+        </section>
+        {%- endif -%}
+
+        {%- comment -%} ==================== topics ==================== {%- endcomment -%}
+        {%- assign show_tags = page.show_tags_section | default: true -%}
+        {%- if show_tags -%}
+        <section class="section" aria-labelledby="topics-h">
+          <div class="section-head">
+            <h2 id="topics-h">Topics</h2>
+          </div>
+          {%- assign cats = site.categories -%}
+          {%- assign tgs  = site.tags -%}
+          {%- if cats.size > 0 or tgs.size > 0 -%}
+          <div class="chips">
+            {%- for cat in cats -%}
+            <span class="chip-pill">{{ cat[0] }}<span class="ct">{{ cat[1] | size }}</span></span>
+            {%- endfor -%}
+            {%- for tag in tgs -%}
+            <span class="chip-pill">#{{ tag[0] }}<span class="ct">{{ tag[1] | size }}</span></span>
+            {%- endfor -%}
+          </div>
+          {%- else -%}
+          <p class="empty">No categories or tags yet.</p>
+          {%- endif -%}
+        </section>
+        {%- endif -%}
+
+        {%- comment -%} ==================== about ==================== {%- endcomment -%}
+        {%- assign show_about = page.show_about_section | default: true -%}
+        {%- if show_about -%}
+        {%- assign about_title = page.about_title | default: 'About this site' -%}
+        {%- assign about_body  = page.about | default: 'A personal notebook for technical work — AI-assisted engineering, systems and infrastructure design, developer tooling, and the occasional deep dive into whatever problem is on the desk. Posts favour reproducible numbers, explicit sources, and claims you can check.' -%}
+        {%- assign links_title = page.about_links_title | default: 'Follow' -%}
+        <section class="section" aria-labelledby="about-h">
+          <div class="about">
+            <div>
+              <h3 id="about-h">{{ about_title }}</h3>
+              <p>{{ about_body }}</p>
+            </div>
+            <div>
+              <h3>{{ links_title }}</h3>
+              <ul class="subscribe">
+                <li><a href="{{ '/feed.xml' | relative_url }}">RSS feed</a> — every new post, no tracking</li>
+                {%- if site.github_username -%}
+                <li><a href="https://github.com/{{ site.github_username | escape }}" rel="noopener noreferrer">github.com/{{ site.github_username | escape }}</a></li>
+                {%- endif -%}
+                {%- if site.email -%}
+                <li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+                {%- endif -%}
+              </ul>
+            </div>
+          </div>
+        </section>
+        {%- endif -%}
+
+      </div>
+    </main>
+
+    {%- include footer.html -%}
+
+  </body>
+</html>

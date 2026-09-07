@@ -4,7 +4,7 @@ title: "Harness Practice With OpenSpec Superpowers Ponytail Caveman CodeGraph RT
 date: 2026-09-07 10:00:00 +0800
 categories: [Harness]
 tags: [GitHub, Harness]
-description: "Harness Practice With OpenSpec Superpowers Ponytail Caveman CodeGraph RTK"
+description: "Seven open-source projects combined into a governance stack for AI coding — one gate each for flow, retrieval, generation, output, and execution."
 ---
 
 # 7 个开源项目，整合出一套治理失控的 AI 编码 Harness

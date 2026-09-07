@@ -1,0 +1,37 @@
+<header class="site-header" role="banner" data-page-node-id="YDbTAUa5CIMBuB01o71xH1">
+
+  <div class="wrapper" data-page-node-id="Kv24Mn5dIRRIj7Lf1V3iB7">
+    <a class="site-brand" rel="author" href="{{ "/" | relative_url }}" data-page-node-id="lT3qhBO76OeVOYtaGDgRbZ">
+      <span class="taiji-mark" aria-hidden="true" data-page-node-id="2XwXBWE8SDihKWR6VzgLaB">&#9775;</span>
+      <span class="brand-text" data-page-node-id="1PbiV7iGQGZuorbn43sR6u">{{ site.title | escape }}</span>
+    </a>
+
+    {%- assign default_paths = site.pages | map: "path" -%}
+    {%- assign page_paths = site.header_pages | default: default_paths -%}
+    {%- if page_paths -%}
+    <nav class="site-nav" data-page-node-id="8ZETHDeMtwI0uYwrTWiutm">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" data-page-node-id="dAD5KjSAQATvUDEE5Jn5Ka" />
+      <label for="nav-trigger" data-page-node-id="xD5u0ANQShmMsWoxZDf6qi">
+        <span class="menu-icon" data-page-node-id="IHVtXXm6zvDea5cCe4qe4a">
+          <svg viewBox="0 0 18 15" width="18px" height="15px" data-page-node-id="peRFWHHbBydFXGrUz1BggP">
+            <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z" data-page-node-id="7RD9Yu7jdh7PcCbRMxkJU5"/>
+          </svg>
+        </span>
+      </label>
+
+      <div class="trigger" data-page-node-id="uj0FNSzzU2BmYMSSfvcXSX">
+        {%- for path in page_paths -%}
+          {%- assign my_page = site.pages | where: "path", path | first -%}
+          {%- if my_page.title and my_page.url != "/" -%}
+          <a class="page-link" href="{{ my_page.url | relative_url }}" data-page-node-id="9YeAbmd5tR1ez5oSkvNSw9">{{ my_page.title | escape }}</a>
+          {%- endif -%}
+        {%- endfor -%}
+        <a class="page-link" href="{{ '/feed.xml' | relative_url }}" data-page-node-id="Q8c4DZmfOJD2jlGMH8c8s6">RSS</a>
+        {%- if site.github_username -%}
+        <a class="page-link" href="https://github.com/{{ site.github_username | escape }}" rel="noopener noreferrer" data-page-node-id="ETRZVnqUpcty5izvJDOCYP">GitHub</a>
+        {%- endif -%}
+      </div>
+    </nav>
+    {%- endif -%}
+  </div>
+</header>

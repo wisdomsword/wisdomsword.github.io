@@ -4,6 +4,10 @@ theme: minima
 author: wisdomsword
 url: "https://wisdomsword.github.io"
 baseurl: ""            # let it null
+lang: en
+timezone: Asia/Shanghai
+github_username: wisdomsword
+rss: RSS
 
 plugins:
   - jekyll-feed        # gen /feed.xml
@@ -14,6 +18,9 @@ plugins:
 permalink: /:year/:month/:day/:title/
 
 paginate: 20
+
+minima:
+  date_format: "%Y-%m-%d"
 
 sass:
   quiet_deps: true          # 静默来自主题/依赖的警告
